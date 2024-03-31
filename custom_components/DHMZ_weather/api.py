@@ -97,45 +97,30 @@ class DHMZMeteoData:
         self._meteo_fc_data_all = []
 
         data_selection = [
-            "domain_title",
-            "domain_longTitle",
-            "domain_lat",
-            "domain_lon",
-            "domain_altitude",
-            "t",
-            "rh",
-            "msl",
-            "nn_icon-wwsyn_icon",
-            "dd_val",
-            "ff_val",
-            "tp_12h_acc",
-            "vis_val",
+            # "GradIme",
+            "Temp",
+            "Vlaga",
+            "Tlak",
+            "VjetarBrzina",
+            "VjetarSmjer",
+            "Vrijeme",
+            "VrijemeZnak",
         ]
 
         data_fc_selection = [
             "domain_shortTitle",
-            "domain_lat",
-            "domain_lon",
-            "domain_altitude",
-            "valid_UTC",  # time and date
-            "nn_icon-wwsyn_icon",  # condition, neeeds to be decoded
-            "td",  # dew point
-            "dd_decodeText",  # wind direction, needs to be decoded?
-            "ff_val",  # wind m/s
-            "ffmax_val",  # gusts of wind m/s
-            "t",  # apparent temperature (proboably average?)
-            "tnsyn",  # min temp
-            "txsyn",  # max temp
-            "msl",  # air pressure
-            "rh",  # humidity, not present?
         ]
 
         root = ET.fromstring(current_data)
-        for meteo_parent in root.findall("metData"):
+        for meteo_city_data in root.findall("Grad"):
             meteo_data_location = {}
+            meteo_data_location["GradIme"] = meteo_city_data.find("GradIme").text
+            self._meteo_data_all.append(meteo_data_location)
+            meteo_parent = meteo_city_data.find("Podatci")
             for data in data_selection:
                 meteo_data_location[data] = meteo_parent.find(data).text
             self._meteo_data_all.append(meteo_data_location)
+            LOGGER.debug("data: %s", str(meteo_data_location))
 
         root = ET.fromstring(forecast_data)
         for meteo_parent in root.findall("metData"):
@@ -244,14 +229,16 @@ class DHMZMeteoData:
         """Return list of possible locations."""
         list_of_locations = []
         for meteo_data_location in self._meteo_data_all:
-            list_of_locations.append(meteo_data_location["domain_longTitle"])
+            list_of_locations.append(meteo_data_location["GradIme"])
         return list_of_locations
 
     def list_of_forecast_regions(self) -> list:
         """Return list of possible forecast regions."""
         list_of_regions = []
-        for meteo_data_region in self._meteo_fc_data_all:
-            list_of_regions.append(meteo_data_region["domain_shortTitle"])
+        list_of_regions.append("Unknown")
+        # TODO: Read list of regions for meteo.hr
+        # for meteo_data_region in self._meteo_fc_data_all:
+        #    list_of_regions.append(meteo_data_region["domain_shortTitle"])
         return list(set(list_of_regions))  # Using set to remove duplicate entries
 
     def fc_list_of_dates(self, region) -> list:
@@ -338,12 +325,11 @@ class DHMZApiClient:
         # pylint: disable=line-too-long
         meteo_data_xml = await self._api_wrapper(
             method="get",
-            # url="https://meteo.DHMZ.gov.si/uploads/probase/www/observ/surface/text/sl/observationAms_si_latest.xml",
             url="https://vrijeme.hr/hrvatska_n.xml",
         )
         meteo_forecast_xml = await self._api_wrapper(
             method="get",
-            url="https://meteo.DHMZ.gov.si/uploads/probase/www/fproduct/text/sl/forecast_si_latest.xml",
+            url="https://prognoza.hr/tri/3d_graf_i_simboli.xml",
         )
         return DHMZMeteoData(meteo_data_xml, meteo_forecast_xml)
 
