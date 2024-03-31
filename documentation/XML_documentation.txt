@@ -1,0 +1,364 @@
+
+meteo.si: XML - opis vremenskih podatkov
+16.6.2009 - ver 0.80
+
+
+Spremembe glede na verzijo 0.72 (16.7.2008):
+
+    novo:
+
+        <domain_shortTitle>
+
+        <ff_value> reprezentativna vrednost intervala za jakost vetra [m/s] (*)
+
+        <ff_minimum> minimum vrednosti intervala za jakost vetra [m/s]
+
+        <ff_maximum> maximum vrednosti intervala za jakost vetra [m/s]
+
+        <tsValid_issued_RFC822> '03 Jun 2009 09:43:00 +0200'
+
+        <tsUpdated_RFC822> '03 Jun 2009 11:43:00 +0200'
+
+        <title> "vrsta" podatka, zaenkrat relevantno v glavnem pri napovedih
+
+npr. 'METEO_FCAST' (napoved prognostika),
+
+'METEO_MODEL' (avtomatska napoved modela)
+
+            pri METEO_FCAST so relevantne napovedi temperature v <tx> in <tn>
+
+            pri METEO_MODEL so relevantne napovedi temperature v <txsyn> in <tnsyn>
+
+        <tsDeg_icon> - kratica (ime ikone, ki jo uporablja meteo.si) za moč neviht (relevantno pri napovedih); [light | mod | heavy]
+
+        <ts_shortText> - kratek tekst za pojav neviht - npr. "nevihte"
+
+        <fogDeg_icon> - kratica (ime ikone, ki jo uporablja meteo.si) za 'gostoto' megle (relevantno pri napovedih); [light | mod | heavy]
+
+        <fog_shortText> - kratek tekst za pojav megle - npr. "megla"
+
+	 (*) ostaja tudi <ff_val>  konkretna vrednost hitrosti vetra, kadar je na voljo
+
+    radi bi vnovič opozorili, da je za identifikacijo'domene', torej točke oz. območja s podatki:
+
+        najbolj relevanten tag <domain_meteosiId> (ki je v terminologiji podatkovnih baz "unique") in se predvidoma ne bo spreminjal
+
+        razmeroma kozervativen <domain_title>, ki se bo malo spreminjal
+
+        dodan tag <domain_shortTitle>, ki se bo skupaj z obstoječim <domain_longTitle> občasno lahko spremenil (npr. 'Ljubljana' --> 'Ljubljana in okolica' ipd.)
+
+        praviloma bodo:
+
+            <domain_title> 'meteorološko' ime brez šumnikov; "UPPER-CASE"
+
+            <domain_shortTitle> krajše opisno ime s šumniki; "Camel-Case"
+
+            <domain_longTitle> daljše opisno ime s šumniki; "Camel-Case"
+
+
+
+XML vremenski podatki so na voljo testno.
+
+Možnosti, da bo občasno prihajalo do manjših težav z obnavljanjem podatkov, ne moremo izključiti.
+
+
+(V nadaljevanju besedila izraz "(pod)element" uporabljamo za "značka" oz. "tag".)
+
+
+Nabor elementov se bo še dopolnjeval.
+
+Sheme (xsd) zaenkrat še ni na voljo.
+
+
+V primeru, da vrednost določenega elementa ni na voljo, element praviloma vseeno obstaja in je prazen.
+
+
+<data> - korenski element; vsi podatki v datotekah XML so podelementi <data>.
+
+    Atribut "id" označuje tip informacije (trenutno npr. "MeteoSI_WebMet_observation_xml" za opazovanja ali "MeteoSI_WebMet_forecast_xml" za napoved - oboje za določeno/e lokacijo/e za določen/e čas/e).
+
+
+Trenutni nabor pod-elementov:
+
+    <credit> - ustanova/izdajatelj
+
+    <credit_url> - spletni naslov izdajatelja
+
+    <image_url> - spletni naslov logotipa izdajatelja
+
+    <suggested_pickup> -predlagani termin za osveževanje informacije, npr. "25 minutes after hour" - 25 min čez polno uro
+
+    <suggested_pickup_period> - predlagani časovni interval osveževanja informacije v minutah
+
+    <icon_url_base> - spletni naslov vremenskih ikon; to pot dodamo vsem ikonam npr. nn_icon, da pridemo do slike
+
+    <icon_format> - format ikon, npr. "png"
+
+    <docs_url> - spletni naslov dokumentacije (ta dokument)
+
+    <disclaimer_url> - spletni naslov s podatki o omejitvi odgovornosti
+
+    <copyright_url> - spletni naslov s podatki o avtorskih pravicah
+
+    <privacy_policy_url> - spletni naslov s podatki o načinu zagotavljanja zasebnosti uporabnikov spletnega mesta
+
+    <managing_editor>- elektronski naslov urednika strani
+
+    <web_master>- elektronski naslov skbnika spletnih strani
+
+    <generator> - interna oznaka procesa/generatorja podatkov (AutoPro/ProCreator)
+
+    <meteosi_url> - spletni naslov meteo.si
+
+    <two_day_history_url> - spletni naslov podatkov o opazovanem vremenu (pri xml z opazovanji - do dva dni)
+
+    <language> - jezik podatkov po ISO 639-2 standardu, npr. "sl"
+
+    <metData> -podatki z aktualnimi vremenskimi informacijami za določeno lokacijo in določen čas; pod-elementi:
+
+        <title> - "vrsta" podatka; zaenkrat relevantno v glavnem pri napovedih: 'METEO_FCAST' (napoved prognostika), METEO_MODEL' (avtomatska napoved računalniškega modela)
+
+        <domain_meteosiId> - alfanumerična šifra lokacije, npr. "LJUBL-ANA_BRNIK_"; ena beseda, brez whitespace-ov
+
+        <domain_countryIsoCode2> - ISO 3166-1-alpha-2 dvočrkovna koda za državo lokacije, npr. "SI"
+
+        <domain_parentId> - šifra geografskega območja, ki mu pripada lokacija npr. "SI_GORENJSKA_"
+
+        <domain_lat> - geografska širina lokacije v stopinjah (praviloma WGS84 - World Geodetic System 1984)
+
+        <domain_lon> - geografska dolžina lokacije v stopinjah (praviloma WGS84)
+
+        <domain_altitude> - nadmorska višina lokacije v m
+
+        <domain_title> - "meteorološko" ime lokacije (krajše), praviloma "UPPER-CASE" brez šumnikov npr. "LJUBLJANA/BRNIK"
+
+        <domain_longTitle> - daljše opisno ime lokacije, praviloma "Camel-Case" s šumniki; npr. "Letališče Jožeta Pučnika Ljubljana"
+
+        <domain_shortTitle> - krajše opisno ime lokacije, praviloma "Camel-Case" s šumniki; npr. "Letališče Jožeta Pučnika Ljubljana"
+
+        <sunrise/> - sončni vzhod za lokacijo, npr. "7:40 CET"
+
+        <sunset/> - sončni zahod za lokacijo, npr. "16.18 CET"
+
+        <tsValid_issued> - datum in ura izdaje podatkov, npr. "17.12.2007 8:00 CET"
+
+        <tsValid_issued_day> - ime dneva izdaje podatkov, npr. "Ponedeljek"
+
+        <tsValid_issued_UTC> - datum in ura izdaje podatkov v UTC, npr. "17.12.2007 7:00 UTC"
+
+        <tsValid_issued_RFC822> - datum in ura izdaje podatkov po RFC822 standardu; npr. "03 Jun 2009 09:43:00 +0200"
+
+        <tsUpdated>" - datum in ura obnovitve podatkov, npr. "28.01.2008 10:12 CET"
+
+        <tsUpdated_day> - ime dneva obnovitve podatkov, npr. "Ponedeljek"
+
+        <tsUpdated_UTC> - datum in ura obnovitve podatkov v UTC, npr. "28.01.2008 10:12 UTC"
+
+        <tsUpdated_RFC822> - datum in ura obnovitve podatkov po RFC822 standardu; npr. "03 Jun 2009 09:43:00 +0200"
+
+        <valid> - datum in ura veljavnosti podatkov, npr. "17.12.2007 8:00 CET"
+
+        <valid_day> - ime dneva veljavnosti podatkov, npr."Ponedeljek"
+
+        <valid_UTC>- datum in ura veljavnosti podatkov v UTC, npr. "17.12.2007 7:00 UTC"
+
+        <nn_icon> - kratica (ime ikone, ki jo uporablja meteo.si) za količino oblačnosti oz. videz neba;
+
+            razredi: clear, mostClear, slightCloudy, partCloudy, modCloudy, prevCloudy, overcast, FG (za interpretacijo gl. <nn_shortText>)
+
+        <nn_shortText> - kratek tekst za količino oblačnosti oz. videz neba
+
+            razredi: jasno, pretežno jasno, rahlo oblačno, delno oblačno, zmerno oblačno, pretežno oblačno, oblačno, megla
+
+        <nn_decodeText> - kratica za količino oblačnosti oz. videz neba:
+
+            razredi (pri opazovanjih): 0/8, 0/8 .. 1/8, 1/8 .. 2/8, 2/8 .. 3/8, 3/8 .. 4/8, 4/8 .. 5/8, 5/8 .. 6/8, 6/8 .. 7/8, 7/8 .. 8/8, 9/8 (v9/8 kadar je lokacija v oblakih)
+
+            razredi (pri napovedih [metData/title='METEO_MODEL' ali 'METEO_FCAST']): J, PJ, RO, DO, ZO, PO, O, M (za interpretacijo gl. <nn_shortText>)
+
+        <rr_decodeText> - kratica za moč vremenskega pojava:
+
+            razredi: light, mod, heavy (šibko, zmerno, močno)
+
+        <wwsyn_icon> - kratica (ime ikone, ki jo uporablja meteo.si) za vremenski pojav (pri napovedih samo osnovni vremenski pojav, pri opazovanjih pa je vključena tudi moč pojava):
+
+            napovedi: (osnovni) razredi: FG, DZ, FZDZ, RA, FZRA, RASN, SN, SHRA, SHRASN, SHSN, SHGR, TS, TSRA, TSRASN, TSSN, TSGR (megla; rosenje; rosenje, ki zmrzuje; dež; dež, ki zmrzuje; dež s snegom; sneg; ploha dežja; ploha dežja s snegom; snežna ploha; ploha sodre; nevihta; nevihta z dežjem; nevihta z dežjem in snegom; nevihta s sneženjem; nevihta s točo)
+
+            opazovanja: razširjeni razredi (osnovnim razredom <wwsyn_icon> iz napovedi so dodane še moči pojavov iz <rr_decodeText>): FG lightFG modFG heavyFG DZ lightDZ modDZ heavyDZ FZDZ lightFZDZ modFZDZ heavyFZDZ RA lightRA modRA heavyRA FZRA lightFZRA modFZRA heavyFZRA RASN lightRASN modRASN heavyRASN SN lightSN modSN heavySN SHRA lightSHRA modSHRA heavySHRA SHRASN lightSHRASN modSHRASN heavySHRASN SHSN lightSHSN modSHSN heavySHSN SHGR lightSHGR modSHGR heavySHGR TS lightTS modTS heavyTS TSRA lightTSRA modTSRA heavyTSRA TSRASN lightTSRASN modTSRASN heavyTSRASN TSSN lightTSSN modTSSN heavyTSSN TSGR lightTSGR modTSGR heavyTSGR
+
+        <wwsyn_shortText> - kratek tekst za vremenski pojav npr. "megla, se redči", ..., "močna nevihta s točo"
+
+        <wwsyn_longText> - dolg tekst za vremenski pojav, npr. "megla v pasovih, ki se redči"
+
+        <wwsyn_decodeText/> - kratica za osnovni vremenski pojav (samo pri napovedih, gl. tudi <wwsyn_icon>):
+
+            pri napovedih; razredi : gl. osnovne razrede pri <wwsyn_icon>
+
+        <nn_icon-wwsyn_icon> - kratica (sestavljeno ime ikone, ki jo uporablja meteo.si) za oblačnost + (razširjeni) vremenski pojav: npr. "prevCloudy_lightTSRASN":
+
+            razredi: vse možne kombinacije razredov <nn_icon> in razširjenih razredov <wwsyn_icon>
+
+            nasvet: pri vizualizaciji morate poskrbeti, da uporabljate samo smiselne kombinacije (na meteo.si npr. vse kombinacije "clear_*.png" kažejo samo "clear.png" ali pa "FG_lightFG.png" - "FG.png")
+
+        <ts_icon> - pri napovedih: "TS" (thunderstorm - nevihta); prazno, kadar nevihte niso napovedane
+
+        <tsDeg_icon> - pri napovedih: kratica (delno ime ikone, ki jo uporablja meteo.si) za moč neviht; [light | mod | heavy]; prazno, kadar nevihte niso napovedane
+
+        <ts_shortText> - kratek tekst za pojav neviht - npr. "nevihte"
+
+        <ts_decodeText> - kratica za nevihte;"TS"
+
+        <fog_icon> - pri napovedih: "FG" (fog - megla); prazno, kadar megla ni napovedana
+
+        <fogDeg_icon> - pri napovedih: kratica (delno ime ikone, ki jo uporablja meteo.si) za 'gostoto' megle; [light | mod | heavy]; prazno, kadar megla ni napovedana
+
+        <fog_shortText> - kratek tekst za pojav megle - npr. "megla"
+
+        <fog_decodeText> - kratica za meglo;"FG"
+
+        <tnsyn_var_desc> - ime parametra: "Minimalna temperatura"
+
+        <tnsyn_var_unit> - enota parametra, npr. "°C"
+
+        <tnsyn> - vrednost dnevne minimalne temperature (ponavadi najnižja jutranja), praviloma zaokrožena na celo vrednost
+
+        <tnsyn_degreesC> - vrednost minimalne temperature v °C
+
+        <txsyn_var_desc> - ime parametra: "Maksimalna temperatura"
+
+        <txsyn_var_unit> - enota parametra, npr. "°C"
+
+        <txsyn> - vrednost dnevne maksimalne temperature (ponavadi najvišja dnevna), praviloma zaokrožena na celo vrednost, npr. -13
+
+        <txsyn_degreesC> - vrednost maksimalne temperature v °C
+
+        <tn_var_desc> - ime parametra: "Minimalna terminska temperatura"
+
+        <tn_var_unit> - enota parametra, npr. "°C"
+
+        <tn> - vrednost terminske minimalne temperature, praviloma zaokrožena na celo vrednost
+
+        <tn_degreesC> - vrednost minimalne temperature v °C
+
+        <tx_var_desc> - ime parametra: "Maksimalna terminska temperatura"
+
+        <tx_var_unit> - enota parametra, npr. "°C"
+
+        <tx> - vrednost terminske maksimalne temperature, praviloma zaokrožena na celo vrednost, npr. -13
+
+        <tx_degreesC> - vrednost maksimalne temperature v °C
+
+        <t_var_desc> - ime parametra: "Temperatura" - terminska
+
+        <t_var_unit> - enota parametra, npr. "°C"
+
+        <t> - vrednost (terminske) temperature, praviloma zaokrožena na celo vrednost
+
+        <t_degreesC> - vrednost temperature v °C
+
+        <windchill> - "občutek mraza" - indeks občutja vpliva vremena zaradi temperature in vetra (°C)
+
+        <vis_value> - vidnost
+
+        <vis_unit>- enota vidnosti
+
+        <rh_var_desc> - ime parametra: "Relativna vlažnost"
+
+        <rh_var_unit> - enota relativne vlažnosti (%)
+
+        <rh> - vrednost relativne vlažnosti v %
+
+        <td_var_desc>- ime parametra: "Temperatura rosišča"
+
+        <td_var_unit>- enota temperature rosišča
+
+        <td> - vrednost temperature rosišča
+
+        <td_degreesC> - vrednost temperature rosišča v °C
+
+        <dd_var_desc>- ime parametra : "Smer vetra"
+
+        <dd_var_unit> - se ne uporablja
+
+        <dd_icon> - kratica (ime ikone, ki jo uporablja meteo.si) smeri vetra veter od koder piha veter (oz. "VRB" v primeru spremenljive smeri vetra):
+
+            razredi za opazovanja 16 smeri + VRB: N, NNE, NE, ENE, E, ESE, SE, SSE, S, SSW, SW, WSW, W, WNW, NW, NNW, VRB
+
+            razredi za napovedi 8 smeri + VRB: N, NE, E, SE, S, SW, W, NW, VRB
+
+        <dd_shortText> - kratek tekst smeri vetra, npr. VSV
+
+        <dd_longText> - dolg tekst smeri vetra, npr. "vzhodno-severovzhodni veter"
+
+        <dd_decodeText> - angl. kratica za smer vetra, npr. "ENE"; razredi - gl. <dd_icon>
+
+        <ff_val> - hitrost vetra
+
+        <ff_unit>- enota hitrosti vetra ; npr. "m/s"
+
+        <ff_icon> - kratica (ime ikone, ki jo uporablja meteo.si) za moč vetra:
+
+            razredi: light, mod, heavy (šibek, zmeren, močen veter)
+
+        <ddff_icon>kratica (sestavljeno ime ikone, ki jo uporablja meteo.si) za moč vetra + smer vetra : npr. "modENE"
+
+            razredi: vsi razredi <dd_icon> + vse možne kombinacije razredov <ff_icon> in <dd_icon>, npr. "ENE", "lightENE", "modENE", "heavyENE", ..., "VRB", "lightVRB", "modVRB", "heavyVRB"
+
+        <ff_value> - reprezentativna vrednost intervala za jakost vetra [m/s]
+
+        <ff_minimum> - minimum vrednosti intervala za jakost vetra [m/s]
+
+        <ff_maximum> - maximum vrednosti intervala za jakost vetra [m/s]
+
+        <ffmax_val> - hitrost vetra v sunkih [m/s]
+
+        <ffmax_unit/> - enota hitrosti sunkov vetra, npr. "m/s"
+
+        <msl_var_desc> - ime parametra: "Pritisk"
+
+        <msl_var_unit> - enota pritiska, npr. "hPa"
+
+        <msl> - vrednost pritiska
+
+        <msl_mb> - vrednost pritiska v milibarih
+
+        <pa_shortText/> - tendenca pritiska, npr "močno pada"
+
+        <note> - za opazovanja SYNOP depeša po WMO standardu
+
+
+
+FAQ:
+
+----
+Q: Prosil bi še za pojasnila za <wwsyn_icon>,, ukvarjam se s kombinacijami FZRA, SHRA, SHGR, TSRA, TSSN (kaj pomenijo ?) in vprašanjem s katerimi vse kombinacijami je možen "overcast" ?
+A: 
+Freezing rain
+shower of rain
+shower of graupel (ploha toče)
+thunderstorm with rain (nevihta z dežjem)
+thunderstorm with snow (nevihta s sneženjem)
+
+overcast - načeloma z vsemi.
+
+----
+Q: ali je <ww_degree> vedno vsebovan tudi v  <wwsyn_icon>?
+
+A: 
+načeloma da (vsaj pri opazovanjih)
+pri forecast sta ločena.
+
+odvisno od vas, kako jih skombinirate.
+mi težimo k temu, da ikono sestavimo npr. prevCloudy_heavyTSGR
+
+----
+Q: relevantni razredi oblačnosti in pojavov?
+
+A: 
+gl. <nn_icon> in <wwsyn_icon> v dokumentaciji;  
+oz. združena v tag-u, npr.
+<nn_icon-wwsyn_icon>overcast_modSHRA</nn_icon-wwsyn_icon>
+ali
+<nn_icon-wwsyn_icon>prevCloudy</nn_icon-wwsyn_icon>, kadar pojava ni.
+----
+
