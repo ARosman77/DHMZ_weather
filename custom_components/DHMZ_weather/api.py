@@ -338,7 +338,8 @@ class DHMZApiClient:
         # pylint: disable=line-too-long
         meteo_data_xml = await self._api_wrapper(
             method="get",
-            url="https://meteo.DHMZ.gov.si/uploads/probase/www/observ/surface/text/sl/observationAms_si_latest.xml",
+            # url="https://meteo.DHMZ.gov.si/uploads/probase/www/observ/surface/text/sl/observationAms_si_latest.xml",
+            url="https://vrijeme.hr/hrvatska_n.xml",
         )
         meteo_forecast_xml = await self._api_wrapper(
             method="get",
