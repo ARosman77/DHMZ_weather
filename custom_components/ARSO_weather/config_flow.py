@@ -1,4 +1,4 @@
-"""Adds config flow for ARSO Weather."""
+"""Adds config flow for DHMZ Weather."""
 
 from __future__ import annotations
 
@@ -8,17 +8,17 @@ from homeassistant.helpers import selector
 from homeassistant.helpers.aiohttp_client import async_create_clientsession
 
 from .api import (
-    ARSOApiClient,
-    ARSOApiClientAuthenticationError,
-    ARSOApiClientCommunicationError,
-    ARSOApiClientError,
-    ARSOMeteoData,
+    DHMZApiClient,
+    DHMZApiClientAuthenticationError,
+    DHMZApiClientCommunicationError,
+    DHMZApiClientError,
+    DHMZMeteoData,
 )
 from .const import DOMAIN, LOGGER, CONF_LOCATION, CONF_REGION
 
 
-class ARSOFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
-    """Config flow for ARSO Weather."""
+class DHMZFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
+    """Config flow for DHMZ Weather."""
 
     VERSION = 1
 
@@ -37,13 +37,13 @@ class ARSOFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         if user_input is not None:
             try:
                 await self._test_connecton()
-            except ARSOApiClientAuthenticationError as exception:
+            except DHMZApiClientAuthenticationError as exception:
                 LOGGER.warning(exception)
                 _errors["base"] = "auth"
-            except ARSOApiClientCommunicationError as exception:
+            except DHMZApiClientCommunicationError as exception:
                 LOGGER.error(exception)
                 _errors["base"] = "connection"
-            except ARSOApiClientError as exception:
+            except DHMZApiClientError as exception:
                 LOGGER.exception(exception)
                 _errors["base"] = "unknown"
             else:
@@ -75,25 +75,25 @@ class ARSOFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
 
     async def _test_connecton(self) -> None:
         """Validate connection."""
-        client = ARSOApiClient(
+        client = DHMZApiClient(
             session=async_create_clientsession(self.hass),
         )
         await client.async_get_data()
 
     async def _return_locations(self) -> list:
         """Get all possible locations."""
-        client = ARSOApiClient(
+        client = DHMZApiClient(
             session=async_create_clientsession(self.hass),
         )
-        meteo_data: ARSOMeteoData
+        meteo_data: DHMZMeteoData
         meteo_data = await client.async_get_data()
         return meteo_data.list_of_locations()
 
     async def _return_regions(self) -> list:
         """Get all possible regions."""
-        client = ARSOApiClient(
+        client = DHMZApiClient(
             session=async_create_clientsession(self.hass),
         )
-        meteo_data: ARSOMeteoData
+        meteo_data: DHMZMeteoData
         meteo_data = await client.async_get_data()
         return meteo_data.list_of_forecast_regions()

@@ -1,4 +1,4 @@
-"""Weather platform for ARSO_weather."""
+"""Weather platform for DHMZ_weather."""
 
 from __future__ import annotations
 
@@ -64,19 +64,19 @@ from homeassistant.const import (
 )
 
 from .const import DOMAIN, CONF_LOCATION, CONF_REGION, ATTRIBUTION, LOGGER
-from .coordinator import ARSODataUpdateCoordinator
-from .entity import ARSOEntity
+from .coordinator import DHMZDataUpdateCoordinator
+from .entity import DHMZEntity
 
 ENTITY_DESCRIPTIONS = (
     WeatherEntityDescription(
-        key="ARSO_weather_forecast",
-        name="ARSO Weather",
+        key="DHMZ_weather_forecast",
+        name="DHMZ Weather",
     ),
 )
 
 
 async def async_setup_entry(hass, entry, async_add_devices):
-    """Set up ARSO weather platform."""
+    """Set up DHMZ weather platform."""
     coordinator = hass.data[DOMAIN][entry.entry_id]
     devices = []
     for entity_description in ENTITY_DESCRIPTIONS:
@@ -85,14 +85,14 @@ async def async_setup_entry(hass, entry, async_add_devices):
             entity_description, name=entry.data[CONF_LOCATION]
         )
         devices.append(
-            ARSOWeather(
+            DHMZWeather(
                 coordinator=coordinator,
                 entity_description=new_entity_description,
                 location=entry.data[CONF_LOCATION],
                 region=entry.data[CONF_REGION],
                 weather_entity_id=generate_entity_id(
                     "weather.{}",
-                    "ARSO_" + entry.data[CONF_REGION],
+                    "DHMZ_" + entry.data[CONF_REGION],
                     hass=hass,
                 ),
                 unique_id=entry.entry_id,
@@ -101,12 +101,12 @@ async def async_setup_entry(hass, entry, async_add_devices):
         async_add_devices(devices)
 
 
-class ARSOWeather(ARSOEntity, WeatherEntity):
+class DHMZWeather(DHMZEntity, WeatherEntity):
     """Representation of a weather condition."""
 
     def __init__(
         self,
-        coordinator: ARSODataUpdateCoordinator,
+        coordinator: DHMZDataUpdateCoordinator,
         entity_description: WeatherEntityDescription,
         location: str,
         region: str,
@@ -233,7 +233,7 @@ class ARSOWeather(ARSOEntity, WeatherEntity):
     #    LOGGER.debug("extra_state_attributes")
     #    return "attr"
 
-    # Supported by HA but not implemented properties as ARSO doesn't provide data
+    # Supported by HA but not implemented properties as DHMZ doesn't provide data
     # @property
     # def native_apparent_temperature(self) -> float | None:
     # @property

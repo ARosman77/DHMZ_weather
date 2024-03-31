@@ -5,4 +5,4 @@ default_config:
 logger:
   default: info
   logs:
-    custom_components.ARSO_weather: debug
+    custom_components.DHMZ_weather: debug

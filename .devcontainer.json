@@ -1,5 +1,5 @@
 {
-    "name": "ARosman77/ARSO_weather",
+    "name": "ARosman77/DHMZ_weather",
     "image": "mcr.microsoft.com/devcontainers/python:3.12-bullseye",
     "postCreateCommand": "scripts/setup",
     "forwardPorts": [

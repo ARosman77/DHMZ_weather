@@ -70,19 +70,19 @@ PHENOMENA_CONDITION_MAPPING = {
 #
 
 
-class ARSOApiClientError(Exception):
+class DHMZApiClientError(Exception):
     """Exception to indicate a general API error."""
 
 
-class ARSOApiClientCommunicationError(ARSOApiClientError):
+class DHMZApiClientCommunicationError(DHMZApiClientError):
     """Exception to indicate a communication error."""
 
 
-class ARSOApiClientAuthenticationError(ARSOApiClientError):
+class DHMZApiClientAuthenticationError(DHMZApiClientError):
     """Exception to indicate an authentication error."""
 
 
-class ARSOMeteoData:
+class DHMZMeteoData:
     """Meteo data class."""
 
     def __init__(
@@ -323,7 +323,7 @@ class ARSOMeteoData:
         return meteo_data_region
 
 
-class ARSOApiClient:
+class DHMZApiClient:
     """Sample API Client."""
 
     def __init__(
@@ -338,13 +338,13 @@ class ARSOApiClient:
         # pylint: disable=line-too-long
         meteo_data_xml = await self._api_wrapper(
             method="get",
-            url="https://meteo.arso.gov.si/uploads/probase/www/observ/surface/text/sl/observationAms_si_latest.xml",
+            url="https://meteo.DHMZ.gov.si/uploads/probase/www/observ/surface/text/sl/observationAms_si_latest.xml",
         )
         meteo_forecast_xml = await self._api_wrapper(
             method="get",
-            url="https://meteo.arso.gov.si/uploads/probase/www/fproduct/text/sl/forecast_si_latest.xml",
+            url="https://meteo.DHMZ.gov.si/uploads/probase/www/fproduct/text/sl/forecast_si_latest.xml",
         )
-        return ARSOMeteoData(meteo_data_xml, meteo_forecast_xml)
+        return DHMZMeteoData(meteo_data_xml, meteo_forecast_xml)
 
     async def _api_wrapper(
         self,
@@ -363,19 +363,19 @@ class ARSOApiClient:
                     json=data,
                 )
                 if response.status in (401, 403):
-                    raise ARSOApiClientAuthenticationError(
+                    raise DHMZApiClientAuthenticationError(
                         "Invalid credentials",
                     )
                 response.raise_for_status()
                 return await response.text()
 
         except asyncio.TimeoutError as exception:
-            raise ARSOApiClientCommunicationError(
+            raise DHMZApiClientCommunicationError(
                 "Timeout error fetching information",
             ) from exception
         except (aiohttp.ClientError, socket.gaierror) as exception:
-            raise ARSOApiClientCommunicationError(
+            raise DHMZApiClientCommunicationError(
                 "Error fetching information",
             ) from exception
         except Exception as exception:  # pylint: disable=broad-except
-            raise ARSOApiClientError("Something really wrong happened!") from exception
+            raise DHMZApiClientError("Something really wrong happened!") from exception

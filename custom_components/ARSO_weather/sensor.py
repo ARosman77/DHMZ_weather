@@ -1,4 +1,4 @@
-"""Sensor platform for ARSO_weather."""
+"""Sensor platform for DHMZ_weather."""
 
 from __future__ import annotations
 
@@ -21,40 +21,40 @@ from homeassistant.helpers.entity import generate_entity_id
 
 
 from .const import DOMAIN, CONF_LOCATION, LOGGER
-from .coordinator import ARSODataUpdateCoordinator
-from .entity import ARSOEntity
+from .coordinator import DHMZDataUpdateCoordinator
+from .entity import DHMZEntity
 
 ENTITY_DESCRIPTIONS = (
     SensorEntityDescription(
-        key="ARSO_weather_t",
+        key="DHMZ_weather_t",
         icon="mdi:thermometer",
         device_class=SensorDeviceClass.TEMPERATURE,
         native_unit_of_measurement=UnitOfTemperature.CELSIUS,
         state_class=SensorStateClass.MEASUREMENT,
     ),
     SensorEntityDescription(
-        key="ARSO_weather_rh",
+        key="DHMZ_weather_rh",
         icon="mdi:water-percent",
         device_class=SensorDeviceClass.HUMIDITY,
         native_unit_of_measurement=PERCENTAGE,
         state_class=SensorStateClass.MEASUREMENT,
     ),
     SensorEntityDescription(
-        key="ARSO_weather_msl",
+        key="DHMZ_weather_msl",
         icon="mdi:gauge",
         device_class=SensorDeviceClass.ATMOSPHERIC_PRESSURE,
         native_unit_of_measurement=UnitOfPressure.HPA,
         state_class=SensorStateClass.MEASUREMENT,
     ),
     SensorEntityDescription(
-        key="ARSO_weather_wind",
+        key="DHMZ_weather_wind",
         icon="mdi:weather-windy",
         device_class=SensorDeviceClass.WIND_SPEED,
         native_unit_of_measurement=UnitOfSpeed.METERS_PER_SECOND,
         state_class=SensorStateClass.MEASUREMENT,
     ),
     SensorEntityDescription(
-        key="ARSO_weather_rain",
+        key="DHMZ_weather_rain",
         icon="mdi:water",
         device_class=SensorDeviceClass.PRECIPITATION,
         native_unit_of_measurement=UnitOfPrecipitationDepth.MILLIMETERS,
@@ -86,14 +86,14 @@ async def async_setup_entry(hass, entry, async_add_devices):
             _data_type = ""
 
         devices.append(
-            ARSOSensor(
+            DHMZSensor(
                 coordinator=coordinator,
                 entity_description=new_entity_description,
                 location=entry.data[CONF_LOCATION],
                 data_type=_data_type,
                 sensor_entity_id=generate_entity_id(
                     "sensor.{}",
-                    "ARSO_" + entry.data[CONF_LOCATION] + "_" + _data_type,
+                    "DHMZ_" + entry.data[CONF_LOCATION] + "_" + _data_type,
                     hass=hass,
                 ),
                 unique_id=entry.entry_id,
@@ -102,12 +102,12 @@ async def async_setup_entry(hass, entry, async_add_devices):
     async_add_devices(devices)
 
 
-class ARSOSensor(ARSOEntity, SensorEntity):
-    """ARSO_weather Sensor class."""
+class DHMZSensor(DHMZEntity, SensorEntity):
+    """DHMZ_weather Sensor class."""
 
     def __init__(
         self,
-        coordinator: ARSODataUpdateCoordinator,
+        coordinator: DHMZDataUpdateCoordinator,
         entity_description: SensorEntityDescription,
         location: str,
         data_type: str,

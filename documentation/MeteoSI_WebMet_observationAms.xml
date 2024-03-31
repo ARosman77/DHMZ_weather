@@ -2,22 +2,22 @@
 <data id="MeteoSI_WebMet_observationAms_xml">
     <language>sl</language>
     <credit>Agencija Republike Slovenije za okolje</credit>
-    <credit_url>https://meteo.arso.gov.si/</credit_url>
-    <image_url>https://meteo.arso.gov.si/uploads/meteo/style/img/logo/ARSO_vreme_blue_small.png</image_url>
+    <credit_url>https://meteo.DHMZ.gov.si/</credit_url>
+    <image_url>https://meteo.DHMZ.gov.si/uploads/meteo/style/img/logo/DHMZ_vreme_blue_small.png</image_url>
     <suggested_pickup>5 minutes after valid</suggested_pickup>
     <suggested_pickup_period>10</suggested_pickup_period>
-    <webcam_url_base>https://meteo.arso.gov.si/uploads/probase/www/observ/webcam/</webcam_url_base>
-    <icon_url_base>https://meteo.arso.gov.si/uploads/meteo/style/img/weather/</icon_url_base>
+    <webcam_url_base>https://meteo.DHMZ.gov.si/uploads/probase/www/observ/webcam/</webcam_url_base>
+    <icon_url_base>https://meteo.DHMZ.gov.si/uploads/meteo/style/img/weather/</icon_url_base>
     <icon_format>png</icon_format>
-    <docs_url>https://meteo.arso.gov.si/uploads/meteo/help/sl/xml_service.html</docs_url>
-    <disclaimer_url>https://meteo.arso.gov.si/uploads/meteo/help/sl/disclaimer.html</disclaimer_url>
-    <copyright_url>https://meteo.arso.gov.si/uploads/meteo/help/sl/copyright.html</copyright_url>
-    <privacy_policy_url>https://meteo.arso.gov.si/uploads/meteo/help/sl/notice.html</privacy_policy_url>
-    <managing_editor>gp.arso@gov.si (Agencija Republike Slovenije za okolje)</managing_editor>
-    <web_master>gp.arso@gov.si (Agencija Republike Slovenije za okolje)</web_master>
+    <docs_url>https://meteo.DHMZ.gov.si/uploads/meteo/help/sl/xml_service.html</docs_url>
+    <disclaimer_url>https://meteo.DHMZ.gov.si/uploads/meteo/help/sl/disclaimer.html</disclaimer_url>
+    <copyright_url>https://meteo.DHMZ.gov.si/uploads/meteo/help/sl/copyright.html</copyright_url>
+    <privacy_policy_url>https://meteo.DHMZ.gov.si/uploads/meteo/help/sl/notice.html</privacy_policy_url>
+    <managing_editor>gp.DHMZ@gov.si (Agencija Republike Slovenije za okolje)</managing_editor>
+    <web_master>gp.DHMZ@gov.si (Agencija Republike Slovenije za okolje)</web_master>
     <generator>AutoPro/ProCreator</generator>
     <collection>si</collection>
-    <meteosi_url>https://meteo.arso.gov.si/uploads/probase/www/observ/surface/text/sl/observationAms_si_latest.html</meteosi_url>
+    <meteosi_url>https://meteo.DHMZ.gov.si/uploads/probase/www/observ/surface/text/sl/observationAms_si_latest.html</meteosi_url>
     <two_day_history_url/>
     <metData>
         <domain_title>BABNO POLJE</domain_title>

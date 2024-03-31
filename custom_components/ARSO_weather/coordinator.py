@@ -1,4 +1,4 @@
-"""DataUpdateCoordinator for ARSO_weather."""
+"""DataUpdateCoordinator for DHMZ_weather."""
 from __future__ import annotations
 
 from datetime import timedelta
@@ -12,15 +12,15 @@ from homeassistant.helpers.update_coordinator import (
 from homeassistant.exceptions import ConfigEntryAuthFailed
 
 from .api import (
-    ARSOApiClient,
-    ARSOApiClientAuthenticationError,
-    ARSOApiClientError,
+    DHMZApiClient,
+    DHMZApiClientAuthenticationError,
+    DHMZApiClientError,
 )
 from .const import DOMAIN, LOGGER
 
 
 # https://developers.home-assistant.io/docs/integration_fetching_data#coordinated-single-api-poll-for-data-for-all-entities
-class ARSODataUpdateCoordinator(DataUpdateCoordinator):
+class DHMZDataUpdateCoordinator(DataUpdateCoordinator):
     """Class to manage fetching data from the API."""
 
     config_entry: ConfigEntry
@@ -28,7 +28,7 @@ class ARSODataUpdateCoordinator(DataUpdateCoordinator):
     def __init__(
         self,
         hass: HomeAssistant,
-        client: ARSOApiClient,
+        client: DHMZApiClient,
     ) -> None:
         """Initialize."""
         self.client = client
@@ -43,7 +43,7 @@ class ARSODataUpdateCoordinator(DataUpdateCoordinator):
         """Update data via library."""
         try:
             return await self.client.async_get_data()
-        except ARSOApiClientAuthenticationError as exception:
+        except DHMZApiClientAuthenticationError as exception:
             raise ConfigEntryAuthFailed(exception) from exception
-        except ARSOApiClientError as exception:
+        except DHMZApiClientError as exception:
             raise UpdateFailed(exception) from exception

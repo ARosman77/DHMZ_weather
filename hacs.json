@@ -1,6 +1,6 @@
 {
-    "name": "ARSO weather",
-    "filename": "ARSO_weather.zip",
+    "name": "DHMZ weather",
+    "filename": "DHMZ_weather.zip",
     "hide_default_branch": true,
     "homeassistant": "2024.1.0",
     "render_readme": true,

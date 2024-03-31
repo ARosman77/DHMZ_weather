@@ -1,8 +1,8 @@
 # pylint: disable=invalid-name
-"""Custom integration to integrate ARSO_weather with Home Assistant.
+"""Custom integration to integrate DHMZ_weather with Home Assistant.
 
 For more details about this integration, please refer to
-https://github.com/ARosman77/ARSO_weather
+https://github.com/ARosman77/DHMZ_weather
 """
 
 from __future__ import annotations
@@ -12,9 +12,9 @@ from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
-from .api import ARSOApiClient
+from .api import DHMZApiClient
 from .const import DOMAIN
-from .coordinator import ARSODataUpdateCoordinator
+from .coordinator import DHMZDataUpdateCoordinator
 
 PLATFORMS: list[Platform] = [
     Platform.SENSOR,
@@ -26,9 +26,9 @@ PLATFORMS: list[Platform] = [
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up this integration using UI."""
     hass.data.setdefault(DOMAIN, {})
-    hass.data[DOMAIN][entry.entry_id] = coordinator = ARSODataUpdateCoordinator(
+    hass.data[DOMAIN][entry.entry_id] = coordinator = DHMZDataUpdateCoordinator(
         hass=hass,
-        client=ARSOApiClient(
+        client=DHMZApiClient(
             session=async_get_clientsession(hass),
         ),
     )
