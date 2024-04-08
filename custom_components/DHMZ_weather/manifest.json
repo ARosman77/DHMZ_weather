@@ -1,0 +1,12 @@
+{
+  "domain": "DHMZ_weather",
+  "name": "DHMZ weather",
+  "codeowners": [
+    "@ARosman77"
+  ],
+  "config_flow": true,
+  "documentation": "https://github.com/ARosman77/DHMZ_weather",
+  "iot_class": "cloud_polling",
+  "issue_tracker": "https://github.com/ARosman77/DHMZ_weather/issues",
+  "version": "0.1.0"
+}
