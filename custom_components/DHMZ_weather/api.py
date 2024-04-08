@@ -139,12 +139,12 @@ class DHMZMeteoData:
         for meteo_city_data in root.findall("Grad"):
             meteo_data_location = {}
             meteo_data_location["GradIme"] = meteo_city_data.find("GradIme").text
-            self._meteo_data_all.append(meteo_data_location)
+            # self._meteo_data_all.append(meteo_data_location)
             meteo_parent = meteo_city_data.find("Podatci")
             for data in data_selection:
                 meteo_data_location[data] = meteo_parent.find(data).text
             self._meteo_data_all.append(meteo_data_location)
-            LOGGER.debug("data: %s", str(meteo_data_location))
+            # LOGGER.debug("data: %s", str(meteo_data_location))
 
         root = ET.fromstring(forecast_data)
         for meteo_parent in root.findall("metData"):
@@ -226,6 +226,7 @@ class DHMZMeteoData:
         """Return list of possible locations."""
         list_of_locations = []
         for meteo_data_location in self._meteo_data_all:
+            LOGGER.debug("Location : %s", meteo_data_location["GradIme"])
             list_of_locations.append(meteo_data_location["GradIme"])
         return list_of_locations
 
