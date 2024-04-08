@@ -59,8 +59,8 @@ from homeassistant.const import (
     UnitOfTemperature,
     UnitOfPressure,
     UnitOfSpeed,
-    UnitOfPrecipitationDepth,
-    UnitOfLength,
+    # UnitOfPrecipitationDepth,
+    # UnitOfLength,
 )
 
 from .const import DOMAIN, CONF_LOCATION, CONF_REGION, ATTRIBUTION, LOGGER
@@ -176,28 +176,28 @@ class DHMZWeather(DHMZEntity, WeatherEntity):
         return self.coordinator.data.current_humidity(self._location)
 
     # seems to not be supported
-    @property
-    def native_precipitation(self):
-        """Return the precipitation."""
-        LOGGER.debug(
-            "weather.py > native_precipitation: %s mm",
-            str(self.coordinator.data.current_precipitation(self._location)),
-        )
-        return self.coordinator.data.current_precipitation(self._location)
+    # @property
+    # def native_precipitation(self):
+    #    """Return the precipitation."""
+    #    LOGGER.debug(
+    #        "weather.py > native_precipitation: %s mm",
+    #        str(self.coordinator.data.current_precipitation(self._location)),
+    #    )
+    #    return self.coordinator.data.current_precipitation(self._location)
 
-    @property
-    def native_precipitation_unit(self):
-        """Return the precipitation unit."""
-        return UnitOfPrecipitationDepth.MILLIMETERS
+    # @property
+    # def native_precipitation_unit(self):
+    #    """Return the precipitation unit."""
+    #    return UnitOfPrecipitationDepth.MILLIMETERS
 
-    @property
-    def native_wind_speed(self):
-        """Return the wind speed."""
-        LOGGER.debug(
-            "weather.py > native_wind_speed: %s m/s",
-            str(self.coordinator.data.current_wind_speed(self._location)),
-        )
-        return self.coordinator.data.current_wind_speed(self._location)
+    # @property
+    # def native_wind_speed(self):
+    #    """Return the wind speed."""
+    #    LOGGER.debug(
+    #        "weather.py > native_wind_speed: %s m/s",
+    #        str(self.coordinator.data.current_wind_speed(self._location)),
+    #    )
+    #    return self.coordinator.data.current_wind_speed(self._location)
 
     @property
     def native_wind_speed_unit(self):
@@ -213,19 +213,19 @@ class DHMZWeather(DHMZEntity, WeatherEntity):
         )
         return self.coordinator.data.current_wind_direction(self._location)
 
-    @property
-    def native_visibility(self):
-        """Return visibility."""
-        LOGGER.debug(
-            "weather.py > visibility: %s km",
-            str(self.coordinator.data.current_visibility(self._location)),
-        )
-        return self.coordinator.data.current_visibility(self._location)
+    # @property
+    # def native_visibility(self):
+    #    """Return visibility."""
+    #    LOGGER.debug(
+    #        "weather.py > visibility: %s km",
+    #        str(self.coordinator.data.current_visibility(self._location)),
+    #    )
+    #    return self.coordinator.data.current_visibility(self._location)
 
-    @property
-    def native_visibility_unit(self):
-        """Return the visibility unit."""
-        return UnitOfLength.KILOMETERS
+    # @property
+    # def native_visibility_unit(self):
+    #    """Return the visibility unit."""
+    #    return UnitOfLength.KILOMETERS
 
     # @property
     # def extra_state_attributes(self):

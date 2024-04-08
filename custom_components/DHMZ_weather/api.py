@@ -19,55 +19,79 @@ from .const import LOGGER
 #    ‘sunny’ = clear, mostClear, slightCloudy
 #    ‘partlycloudy’ = , partCloudy, modCloudy
 
-# cloud condition mapping
-CLOUD_CONDITION_MAPPING = {
-    "clear": "sunny",
-    "mostClear": "sunny",
-    "slightCloudy": "sunny",
-    "partCloudy": "partlycloudy",
-    "modCloudy": "partlycloudy",
-    "prevCloudy": "cloudy",
-    "overcast": "cloudy",
-    "FG": "fog",
+CONDITION_CLASSES = {
+    "clear-night": ["1n"],
+    "cloudy": ["5", "6", "5n", "6n"],
+    "fog": [
+        "7",
+        "8",
+        "9",
+        "10",
+        "11",
+        "39",
+        "40",
+        "41",
+        "42",
+        "7n",
+        "8n",
+        "9n",
+        "10n",
+        "11n",
+        "39n",
+        "40n",
+        "41n",
+        "42n",
+    ],
+    "hail": [],
+    "lightning": ["15", "25", "29", "15n", "25n", "29n"],
+    "lightning-rainy": [
+        "16",
+        "17",
+        "18",
+        "30",
+        "31",
+        "16n",
+        "17n",
+        "18n",
+        "30n",
+        "31n",
+    ],
+    "partlycloudy": ["2", "3", "4", "2n", "3n", "4n"],
+    "pouring": ["14", "28", "32", "14n", "28n", "32n"],
+    "rainy": ["12", "13", "26", "27", "12n", "13n", "26n", "27n"],
+    "snowy": [
+        "22",
+        "23",
+        "24",
+        "36",
+        "37",
+        "38",
+        "22n",
+        "23n",
+        "24n",
+        "36n",
+        "37n",
+        "38n",
+    ],
+    "snowy-rainy": [
+        "19",
+        "20",
+        "21",
+        "33",
+        "34",
+        "35",
+        "19n",
+        "20n",
+        "21n",
+        "33n",
+        "34n",
+        "35n",
+    ],
+    "sunny": ["1"],
+    "windy": [],
+    "windy-variant": [],
+    "exceptional": ["-"],
 }
-
-# phenomena condition mapping
-#   ‘fog’ = FG
-#   ‘hail’ = SHGR, TSGR
-#   ‘lightning’ = TS
-#   ‘lightning-rainy’ = TSRA
-#   ‘rainy’ = RA, DZ, FZDZ, FZRA, SHRA
-#   ‘snowy’ = SN, SHSN, TSSN
-#   ‘snowy-rainy’ = RASN, SHRASN, TSRASN
-PHENOMENA_CONDITION_MAPPING = {
-    "FG": "fog",
-    "SHGR": "hail",
-    "TSGR": "hail",
-    "TS": "lightning",
-    "TSRA": "lightning-rainy",
-    "RA": "rainy",
-    "DZ": "rainy",
-    "FZDZ": "rainy",
-    "FZRA": "rainy",
-    "SHRA": "rainy",
-    "SN": "snowy",
-    "SHSN": "snowy",
-    "TSSN": "snowy",
-    "RASN": "snowy-rainy",
-    "SHRASN": "snowy-rainy",
-    "TSRASN": "snowy-rainy",
-}
-
-# Processed sepparately
-#   ‘pouring’ = heavyRA
-
-#
-# This ones don't exist in meteo data
-#
-#    ‘windy’
-#    ‘windy-variant’
-#    ‘exceptional’
-#
 
 
 class DHMZApiClientError(Exception):
@@ -131,96 +155,69 @@ class DHMZMeteoData:
 
     def current_temperature(self, location: str) -> str:
         """Return temperature of the location."""
-        return self.current_meteo_data(location, "t")
+        return self.current_meteo_data(location, "Temp")
 
     def current_humidity(self, location: str) -> float:
         """Return humidity of the location."""
-        humidity = self.current_meteo_data(location, "rh")
+        humidity = self.current_meteo_data(location, "Vlaga")
         return float(humidity) if humidity else None
 
     def current_air_pressure(self, location: str) -> str:
         """Return air pressure of the location."""
-        return self.current_meteo_data(location, "msl")
+        return self.current_meteo_data(location, "Tlak")
 
     def _decode_meteo_condition(self, description: str) -> str:
         """Decode meteo condition to home assistant condition."""
-        if description is None:
-            return None
-        list_of_conditions = description.split("_")
-        cloud_condition = list_of_conditions[0] if len(list_of_conditions) > 0 else None
-        phenomena_condition = (
-            list_of_conditions[1] if len(list_of_conditions) > 1 else None
-        )
-
-        if phenomena_condition is not None:
-            phenomena_type = "".join([c for c in phenomena_condition if c.isupper()])
-            phenomena_strength = "".join(
-                [c for c in phenomena_condition if c.islower()]
-            )
-        else:
-            phenomena_type = None
-            phenomena_strength = None
 
         LOGGER.debug("API.py > _decode_meteo_condition()")
-        LOGGER.debug(
-            "--> cloud=%s / type=%s / strength=%s",
-            str(cloud_condition),
-            str(phenomena_type),
-            str(phenomena_strength),
-        )
-
-        # complicated decoding done here:
-        if phenomena_type is None:
-            return CLOUD_CONDITION_MAPPING[cloud_condition]
-        # ‘pouring’ = heavyRA
-        if (phenomena_type == "RA") and (phenomena_strength == "heavy"):
-            return "pouring"
-        return PHENOMENA_CONDITION_MAPPING[phenomena_type]
+        # decoding done here:
+        try:
+            s_ret = [k for k, v in CONDITION_CLASSES.items() if description in v][0]
+            return s_ret
+        except IndexError:
+            LOGGER.warning("Unknown DHMZ weather symbol: %s", description)
+            return None
 
     def current_condition(self, location: str) -> str:
         """Return current condition of the location."""
         LOGGER.debug("API.py > current_condition()")
         LOGGER.debug(
             "--> decoding '%s' to condition '%s' ",
-            str(self.current_meteo_data(location, "nn_icon-wwsyn_icon")),
+            str(self.current_meteo_data(location, "VrijemeZnak")),
             str(
                 self._decode_meteo_condition(
-                    self.current_meteo_data(location, "nn_icon-wwsyn_icon")
+                    self.current_meteo_data(location, "VrijemeZnak")
                 )
             ),
         )
         return self._decode_meteo_condition(
-            self.current_meteo_data(location, "nn_icon-wwsyn_icon")
+            self.current_meteo_data(location, "VrijemeZnak")
         )
 
-    def current_wind_direction(self, location: str) -> float:
+    def current_wind_direction(self, location: str) -> str:
         """Return current wind direction."""
-        wind_dir = self.current_meteo_data(location, "dd_val")
-        return float(wind_dir) if wind_dir else None
+        wind_dir = self.current_meteo_data(location, "VjetarSmjer")
+        return str(wind_dir) if wind_dir else None
 
     def current_wind_speed(self, location: str) -> float:
         """Return current wind speed."""
-        wind_speed = self.current_meteo_data(location, "ff_val")
+        wind_speed = self.current_meteo_data(location, "VjetarBrzina")
         return float(wind_speed) if wind_speed else None
 
-    def current_precipitation(self, location: str) -> float:
-        """Return current precipitation."""
-        precipitation = self.current_meteo_data(location, "tp_12h_acc")
-        return float(precipitation) if precipitation else None
+    # def current_precipitation(self, location: str) -> float:
+    #    """Return current precipitation."""
+    #    precipitation = self.current_meteo_data(location, "tp_12h_acc")
+    #    return float(precipitation) if precipitation else None
 
-    def current_visibility(self, location: str) -> float:
-        """Return current visibility."""
-        visibility = self.current_meteo_data(location, "vis_val")
-        return float(visibility) if visibility else None
+    # def current_visibility(self, location: str) -> float:
+    #    """Return current visibility."""
+    #    visibility = self.current_meteo_data(location, "vis_val")
+    #    return float(visibility) if visibility else None
 
     def current_meteo_data(self, location: str, data_type: str) -> str:
         """Return temperature of the location."""
         meteo_data_location = next(
-            (
-                item
-                for item in self._meteo_data_all
-                if item["domain_longTitle"] == location
-            ),
+            (item for item in self._meteo_data_all if item["GradIme"] == location),
             None,
         )
         return None if meteo_data_location is None else meteo_data_location[data_type]
@@ -236,7 +233,7 @@ class DHMZMeteoData:
         """Return list of possible forecast regions."""
         list_of_regions = []
         list_of_regions.append("Unknown")
-        # TODO: Read list of regions for meteo.hr
+        # Read list of regions for meteo.hr
         # for meteo_data_region in self._meteo_fc_data_all:
         #    list_of_regions.append(meteo_data_region["domain_shortTitle"])
         return list(set(list_of_regions))  # Using set to remove duplicate entries
