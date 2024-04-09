@@ -13,7 +13,7 @@ from homeassistant.components.sensor import (
 from homeassistant.const import (
     UnitOfTemperature,
     UnitOfPressure,
-    # UnitOfSpeed,
+    UnitOfSpeed,
     # UnitOfPrecipitationDepth,
     PERCENTAGE,
 )
@@ -46,6 +46,13 @@ ENTITY_DESCRIPTIONS = (
         native_unit_of_measurement=UnitOfPressure.HPA,
         state_class=SensorStateClass.MEASUREMENT,
     ),
+    SensorEntityDescription(
+        key="ARSO_weather_wind",
+        icon="mdi:weather-windy",
+        device_class=SensorDeviceClass.WIND_SPEED,
+        native_unit_of_measurement=UnitOfSpeed.METERS_PER_SECOND,
+        state_class=SensorStateClass.MEASUREMENT,
+    ),
 )
 
 
@@ -64,6 +71,8 @@ async def async_setup_entry(hass, entry, async_add_devices):
             _data_type = "Vlaga"
         elif entity_description.device_class == SensorDeviceClass.ATMOSPHERIC_PRESSURE:
             _data_type = "Tlak"
+        elif entity_description.device_class == SensorDeviceClass.WIND_SPEED:
+            _data_type = "VjetarBrzina"
         else:
             _data_type = ""
 
