@@ -12,13 +12,6 @@ import async_timeout
 
 from .const import LOGGER
 
-# posibile conditions, and what should they be translated from
-#    ‘clear-night’
-
-#    ‘cloudy’ = prevCloudy, overcast,
-#    ‘sunny’ = clear, mostClear, slightCloudy
-#    ‘partlycloudy’ = , partCloudy, modCloudy
-
 CONDITION_CLASSES = {
     "clear-night": ["1n"],
     "cloudy": ["5", "6", "5n", "6n"],
@@ -93,6 +86,29 @@ CONDITION_CLASSES = {
     "exceptional": ["-"],
 }
 
+# Currently not needed
+# But can be used to convert string direction to degrees:
+#   WIND_DIRECTION.index(direction) * 22.5
+WIND_DIRECTION = [
+    "N",
+    "NNE",
+    "NE",
+    "ENE",
+    "E",
+    "ESE",
+    "SE",
+    "SSE",
+    "S",
+    "SSW",
+    "SW",
+    "WSW",
+    "W",
+    "WNW",
+    "NW",
+    "NNW",
+    "N",
+]
+
 
 class DHMZApiClientError(Exception):
     """Exception to indicate a general API error."""
@@ -121,7 +137,6 @@ class DHMZMeteoData:
         self._meteo_fc_data_all = []
 
         data_selection = [
-            # "GradIme",
             "Temp",
             "Vlaga",
             "Tlak",
@@ -139,12 +154,10 @@ class DHMZMeteoData:
         for meteo_city_data in root.findall("Grad"):
             meteo_data_location = {}
             meteo_data_location["GradIme"] = meteo_city_data.find("GradIme").text
-            # self._meteo_data_all.append(meteo_data_location)
             meteo_parent = meteo_city_data.find("Podatci")
             for data in data_selection:
                 meteo_data_location[data] = meteo_parent.find(data).text
             self._meteo_data_all.append(meteo_data_location)
-            # LOGGER.debug("data: %s", str(meteo_data_location))
 
         root = ET.fromstring(forecast_data)
         for meteo_parent in root.findall("metData"):
