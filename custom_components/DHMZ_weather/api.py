@@ -80,10 +80,10 @@ CONDITION_CLASSES = {
         "34n",
         "35n",
     ],
-    "sunny": ["1"],
+    "sunny": ["1", "-"],
     "windy": [],
     "windy-variant": [],
-    "exceptional": ["-"],
+    "exceptional": [],
 }
 
 # Currently not needed
