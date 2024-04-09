@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from datetime import datetime, time, timezone
 import dataclasses
 
 from homeassistant.helpers.entity import generate_entity_id
@@ -28,11 +29,11 @@ from homeassistant.components.weather import (
     # Forecast data
     # ATTR_FORECAST_IS_DAYTIME,
     ATTR_FORECAST_CONDITION,
-    ATTR_FORECAST_HUMIDITY,
+    # ATTR_FORECAST_HUMIDITY,
     # ATTR_FORECAST_NATIVE_PRECIPITATION,
     # ATTR_FORECAST_PRECIPITATION,
     # ATTR_FORECAST_PRECIPITATION_PROBABILITY,
-    ATTR_FORECAST_NATIVE_PRESSURE,
+    # ATTR_FORECAST_NATIVE_PRESSURE,
     # ATTR_FORECAST_PRESSURE,
     ATTR_FORECAST_NATIVE_APPARENT_TEMP,
     # ATTR_FORECAST_APPARENT_TEMP,
@@ -41,12 +42,12 @@ from homeassistant.components.weather import (
     ATTR_FORECAST_NATIVE_TEMP_LOW,
     # ATTR_FORECAST_TEMP_LOW,
     ATTR_FORECAST_TIME,
-    ATTR_FORECAST_WIND_BEARING,
-    ATTR_FORECAST_NATIVE_WIND_GUST_SPEED,
+    # ATTR_FORECAST_WIND_BEARING,
+    # ATTR_FORECAST_NATIVE_WIND_GUST_SPEED,
     # ATTR_FORECAST_WIND_GUST_SPEED,
-    ATTR_FORECAST_NATIVE_WIND_SPEED,
+    # ATTR_FORECAST_NATIVE_WIND_SPEED,
     # ATTR_FORECAST_WIND_SPEED,
-    ATTR_FORECAST_NATIVE_DEW_POINT,
+    # ATTR_FORECAST_NATIVE_DEW_POINT,
     # ATTR_FORECAST_DEW_POINT,
     # ATTR_FORECAST_CLOUD_COVERAGE,
     # ATTR_FORECAST_UV_INDEX,
@@ -247,9 +248,35 @@ class DHMZWeather(DHMZEntity, WeatherEntity):
     # @property
     # def uv_index(self) -> float | None:
 
+    def _convert_to_daily_forecast(self, list_of_meteo_data: list) -> list[Forecast]:
+        """Convert lots of data to fit into the daily forcasts list."""
+        _forecasts = []
+        _dates = []
+        _dates_times = []
+        _picked_dates = []
+        for _forecast in list_of_meteo_data:
+            # sort by date
+            _dates.append(datetime.fromisoformat(_forecast["datetime"]).date())
+            _dates_times.append(datetime.fromisoformat(_forecast["datetime"]))
+        _list_of_dates = sorted(set(_dates))
+        LOGGER.debug("Dates: %s", _list_of_dates)
+        LOGGER.debug("DatesTimes: %s", _dates_times)
+
+        for _date in _list_of_dates:
+            _new_date = datetime.combine(_date, time(12, tzinfo=timezone.utc))
+            LOGGER.debug("NewDates: %s", _new_date)
+            _picked_date = min(_dates_times, key=lambda d: abs(d - _new_date))
+            LOGGER.debug("PickDates: %s", _picked_date)
+            _picked_dates.append(_picked_date)
+
+        # keep so it doesn't report error
+        for _forecast in list_of_meteo_data:
+            _forecasts.append(_forecast)
+        return _forecasts
+
     def _get_forecast(self) -> list[Forecast]:
         """Return forecast."""
-        _forecasts = []
+        # _forecasts = []
         _list_of_meteo_data = []
         # Putting together all data from API, using dates to create a list of dictionaries
         for (
@@ -292,11 +319,12 @@ class DHMZWeather(DHMZEntity, WeatherEntity):
                     # ATTR_FORECAST_WIND_BEARING: fc_wind_bearing,
                 }
             )
+        # There is too much data in 3days forecast, so we should reduce it a bit
+        # Maybe a sepparate functions that then returns list of forecasts
+        # for _forcast in _list_of_meteo_data:
+        #    _forecasts.append(_forcast)
 
-        for _forcast in _list_of_meteo_data:
-            _forecasts.append(_forcast)
-
-        return _forecasts
+        return self._convert_to_daily_forecast(_list_of_meteo_data)
 
     async def async_forecast_hourly(self) -> list[Forecast]:
         """Return hourly forecast."""
