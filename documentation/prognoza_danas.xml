@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<VW version="1.1" creator="DHMZ-SVAP">
+    <metadata>
+        <datatime>090424</datatime>
+        <creationtime>Tue Apr 09 00:00:00 2024</creationtime>
+    </metadata>
+    <section name="All">
+        <param name="datum" value="090424"/>
+        <station name="sredisnja" lon="16.03" lat="45.82">
+            <param name="vrijeme" value="2" />
+            <param name="Tmn" value="12" />
+            <param name="Tmx" value="27" />
+            <param name="wind" value="6" />
+        </station>
+        <station name="istocna" lon="18.63" lat="45.53">
+            <param name="vrijeme" value="2" />
+            <param name="Tmn" value="11" />
+            <param name="Tmx" value="29" />
+            <param name="wind" value="0" />
+        </station>
+        <station name="gorska" lon="15.37" lat="44.55">
+            <param name="vrijeme" value="2" />
+            <param name="Tmn" value="10" />
+            <param name="Tmx" value="24" />
+            <param name="wind" value="6" />
+        </station>
+        <station name="unutrasnjost Dalmacije" lon="16.2" lat="44.03">
+            <param name="vrijeme" value="2" />
+            <param name="Tmn" value="9" />
+            <param name="Tmx" value="27" />
+            <param name="wind" value="5" />
+        </station>
+        <station name="sjeverni Jadran" lon="14.58" lat="45.22">
+            <param name="vrijeme" value="3" />
+            <param name="Tmn" value="14" />
+            <param name="Tmx" value="23" />
+            <param name="wind" value="4" />
+        </station>
+        <station name="srednji Jadran" lon="16.43" lat="43.17">
+            <param name="vrijeme" value="2" />
+            <param name="Tmn" value="15" />
+            <param name="Tmx" value="24" />
+            <param name="wind" value="4" />
+        </station>
+        <station name="juzni Jadran" lon="18.08" lat="42.65">
+            <param name="vrijeme" value="2" />
+            <param name="Tmn" value="15" />
+            <param name="Tmx" value="24" />
+            <param name="wind" value="4" />
+        </station>
+        <param name="rh_text" value="Pretežno sunčano, na zapadu zemlje prema kraju dana s više oblaka. Puhat će slab i umjeren jugozapadni i južni vjetar, na Jadranu većinom umjereno jugo. Najviša dnevna temperatura od 25 do 30, duž obale i na otocima te u gorskoj Hrvatskoj između 21 i 26 °C."/>
+        <station name="Zagreb" lon="16.03" lat="45.82">
+            <param name="vrijeme" value="2" />
+            <param name="Tmn" value="11" />
+            <param name="Tmx" value="28" />
+            <param name="wind" value="6" />
+        </station>
+        <param name="zg_text" value="Pretežno sunčano uz slab do umjeren jugozapadni vjetar. Najviša dnevna temperatura između 27 i 29 °C."/>
+    </section>
+</VW>
+
