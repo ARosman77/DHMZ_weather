@@ -129,10 +129,13 @@ class DHMZWeather(DHMZEntity, WeatherEntity):
     def supported_features(self) -> WeatherEntityFeature:
         """Return supported features."""
         # Possible features:
-        # WeatherEntityFeature.FORECAST_HOURLY
+        # WeatherEntityFeature.FORECAST_HOURLY # can also be every two hours
         # WeatherEntityFeature.FORECAST_DAILY
-        # WeatherEntityFeature.FORECAST_TWICE_DAILY
-        return WeatherEntityFeature.FORECAST_DAILY
+        # WeatherEntityFeature.FORECAST_TWICE_DAILY # don't forget is_daytime attribute
+        # return WeatherEntityFeature.FORECAST_DAILY
+        return (
+            WeatherEntityFeature.FORECAST_DAILY | WeatherEntityFeature.FORECAST_HOURLY
+        )
 
     @property
     def condition(self):
@@ -250,26 +253,32 @@ class DHMZWeather(DHMZEntity, WeatherEntity):
 
     def _convert_to_daily_forecast(self, list_of_meteo_data: list) -> list[Forecast]:
         """Convert lots of data to fit into the daily forcasts list."""
-        _forecasts = []
+
         _dates = []
-        _dates_times = []
-        _picked_dates = []
+        _forecasts_by_dates = []
+
+        # extract different dates
         for _forecast in list_of_meteo_data:
             # sort by date
             _dates.append(datetime.fromisoformat(_forecast["datetime"]).date())
-            _dates_times.append(datetime.fromisoformat(_forecast["datetime"]))
         _list_of_dates = sorted(set(_dates))
-        LOGGER.debug("Dates: %s", _list_of_dates)
-        LOGGER.debug("DatesTimes: %s", _dates_times)
 
+        # sepparate forecasts by dates
         for _date in _list_of_dates:
-            _new_date = datetime.combine(_date, time(12, tzinfo=timezone.utc))
-            LOGGER.debug("NewDates: %s", _new_date)
-            _picked_date = min(_dates_times, key=lambda d: abs(d - _new_date))
-            LOGGER.debug("PickDates: %s", _picked_date)
-            _picked_dates.append(_picked_date)
+            test = [
+                d
+                for d in list_of_meteo_data
+                if datetime.fromisoformat(d["datetime"]).date() == _date
+            ]
+            _forecasts_by_dates.append(test)
+        # LOGGER.debug("Test: %s", _forecasts_by_dates)
 
-        # keep so it doesn't report error
+        # find sutable forecasts
+        for picked in _forecasts_by_dates:
+            LOGGER.debug("Picked: %s", picked["datetime"])
+
+        # keep this so it doesn't report error
+        _forecasts = []
         for _forecast in list_of_meteo_data:
             _forecasts.append(_forecast)
         return _forecasts
@@ -328,14 +337,15 @@ class DHMZWeather(DHMZEntity, WeatherEntity):
 
     async def async_forecast_hourly(self) -> list[Forecast]:
         """Return hourly forecast."""
-        # return self._get_forecast()
+        LOGGER.debug("weather.py > async_forecast_hourly()")
+        return self._get_forecast()
 
     async def async_forecast_twice_daily(self) -> list[Forecast]:
         """Return twice_daily forecast."""
-        # return self._get_forecast()
+        LOGGER.debug("weather.py > async_forecast_twice_daily()")
+        return self._get_forecast()
 
     async def async_forecast_daily(self) -> list[Forecast]:
         """Return daily forecast."""
-        # LOGGER.debug("weather.py > async_forecast_daily(): %s", str(self._get_forecast()))
         LOGGER.debug("weather.py > async_forecast_daily()")
         return self._get_forecast()
