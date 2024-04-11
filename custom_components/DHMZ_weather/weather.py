@@ -255,7 +255,7 @@ class DHMZWeather(DHMZEntity, WeatherEntity):
         """Convert data to fit into the hourly forcasts list."""
         _forecasts = []
         for _forecast in list_of_meteo_data:
-            # remove unwanted data
+            # remove unwanted data (max, min temperatures)
             del _forecast[ATTR_FORECAST_NATIVE_TEMP_LOW]
             del _forecast[ATTR_FORECAST_NATIVE_APPARENT_TEMP]
             _forecasts.append(_forecast)
@@ -271,7 +271,7 @@ class DHMZWeather(DHMZEntity, WeatherEntity):
         # extract different dates
         for _forecast in list_of_meteo_data:
             # sort by date
-            _dates.append(datetime.fromisoformat(_forecast["datetime"]).date())
+            _dates.append(datetime.fromisoformat(_forecast[ATTR_FORECAST_TIME]).date())
         _list_of_dates = sorted(set(_dates))
 
         # sepparate forecasts by dates
@@ -279,31 +279,32 @@ class DHMZWeather(DHMZEntity, WeatherEntity):
             test = [
                 d
                 for d in list_of_meteo_data
-                if datetime.fromisoformat(d["datetime"]).date() == _date
+                if datetime.fromisoformat(d[ATTR_FORECAST_TIME]).date() == _date
             ]
             _forecasts_by_dates.append(test)
 
         # find sutable forecasts
         for same_dates_fc in _forecasts_by_dates:
             # calculate daily min / max temperature
-            min_temp = min(int(i["native_temperature"]) for i in same_dates_fc)
-            max_temp = max(int(i["native_temperature"]) for i in same_dates_fc)
+            min_temp = min(int(i[ATTR_FORECAST_NATIVE_TEMP]) for i in same_dates_fc)
+            max_temp = max(int(i[ATTR_FORECAST_NATIVE_TEMP]) for i in same_dates_fc)
             LOGGER.debug("MinTemp: %s, MaxTemp: %s", min_temp, max_temp)
             # pick forecast closest to 12:00
             test_date = datetime.combine(
-                datetime.fromisoformat(same_dates_fc[0]["datetime"]).date(),
+                datetime.fromisoformat(same_dates_fc[0][ATTR_FORECAST_TIME]).date(),
                 time(12, tzinfo=timezone.utc),
             )
             fc_dict = {
                 abs(
                     test_date.timestamp()
-                    - datetime.fromisoformat(date["datetime"]).timestamp()
+                    - datetime.fromisoformat(date[ATTR_FORECAST_TIME]).timestamp()
                 ): date
                 for date in same_dates_fc
             }
             picked_forecast = fc_dict[min(fc_dict.keys())]
-            picked_forecast["native_temperature"] = max_temp
-            picked_forecast["native_templow"] = min_temp
+            # put min /max temperature into daily forcast data
+            picked_forecast[ATTR_FORECAST_NATIVE_TEMP] = max_temp
+            picked_forecast[ATTR_FORECAST_NATIVE_TEMP_LOW] = min_temp
             _forecasts.append(picked_forecast)
 
         return _forecasts
