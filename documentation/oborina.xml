@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dnevna_oborina>
+    <datumtermin>
+        <datum>09.04.2024.</datum>
+        <termin>8</termin>
+    </datumtermin>
+    <grad>
+        <ime>Mali Lošinj</ime>
+        <kolicina>0</kolicina>
+    </grad>
+</dnevna_oborina>

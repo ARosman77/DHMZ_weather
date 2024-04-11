@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from datetime import datetime, time, timezone
 import dataclasses
 
 from homeassistant.helpers.entity import generate_entity_id
@@ -28,11 +29,11 @@ from homeassistant.components.weather import (
     # Forecast data
     # ATTR_FORECAST_IS_DAYTIME,
     ATTR_FORECAST_CONDITION,
-    ATTR_FORECAST_HUMIDITY,
+    # ATTR_FORECAST_HUMIDITY,
     # ATTR_FORECAST_NATIVE_PRECIPITATION,
     # ATTR_FORECAST_PRECIPITATION,
     # ATTR_FORECAST_PRECIPITATION_PROBABILITY,
-    ATTR_FORECAST_NATIVE_PRESSURE,
+    # ATTR_FORECAST_NATIVE_PRESSURE,
     # ATTR_FORECAST_PRESSURE,
     ATTR_FORECAST_NATIVE_APPARENT_TEMP,
     # ATTR_FORECAST_APPARENT_TEMP,
@@ -41,12 +42,12 @@ from homeassistant.components.weather import (
     ATTR_FORECAST_NATIVE_TEMP_LOW,
     # ATTR_FORECAST_TEMP_LOW,
     ATTR_FORECAST_TIME,
-    ATTR_FORECAST_WIND_BEARING,
-    ATTR_FORECAST_NATIVE_WIND_GUST_SPEED,
+    # ATTR_FORECAST_WIND_BEARING,
+    # ATTR_FORECAST_NATIVE_WIND_GUST_SPEED,
     # ATTR_FORECAST_WIND_GUST_SPEED,
-    ATTR_FORECAST_NATIVE_WIND_SPEED,
+    # ATTR_FORECAST_NATIVE_WIND_SPEED,
     # ATTR_FORECAST_WIND_SPEED,
-    ATTR_FORECAST_NATIVE_DEW_POINT,
+    # ATTR_FORECAST_NATIVE_DEW_POINT,
     # ATTR_FORECAST_DEW_POINT,
     # ATTR_FORECAST_CLOUD_COVERAGE,
     # ATTR_FORECAST_UV_INDEX,
@@ -128,10 +129,13 @@ class DHMZWeather(DHMZEntity, WeatherEntity):
     def supported_features(self) -> WeatherEntityFeature:
         """Return supported features."""
         # Possible features:
-        # WeatherEntityFeature.FORECAST_HOURLY
+        # WeatherEntityFeature.FORECAST_HOURLY # can also be every two hours
         # WeatherEntityFeature.FORECAST_DAILY
-        # WeatherEntityFeature.FORECAST_TWICE_DAILY
-        return WeatherEntityFeature.FORECAST_DAILY
+        # WeatherEntityFeature.FORECAST_TWICE_DAILY # don't forget is_daytime attribute
+        # return WeatherEntityFeature.FORECAST_DAILY
+        return (
+            WeatherEntityFeature.FORECAST_DAILY | WeatherEntityFeature.FORECAST_HOURLY
+        )
 
     @property
     def condition(self):
@@ -247,9 +251,75 @@ class DHMZWeather(DHMZEntity, WeatherEntity):
     # @property
     # def uv_index(self) -> float | None:
 
-    def _get_forecast(self) -> list[Forecast]:
-        """Return forecast."""
+    def _separate_forecasts_by_dates(self, list_of_meteo_data: list) -> list:
+        """Sepparate forecasts by dates."""
+        different_dates = []
+        forecasts_by_dates = []
+
+        # extract different dates
+        for fc in list_of_meteo_data:
+            # sort by date
+            different_dates.append(
+                datetime.fromisoformat(fc[ATTR_FORECAST_TIME]).date()
+            )
+        list_of_dates = sorted(set(different_dates))
+
+        # sepparate forecasts by dates
+        for each_date in list_of_dates:
+            same_date_forecasts = [
+                fc
+                for fc in list_of_meteo_data
+                if datetime.fromisoformat(fc[ATTR_FORECAST_TIME]).date() == each_date
+            ]
+            forecasts_by_dates.append(same_date_forecasts)
+
+        return forecasts_by_dates
+
+    def _convert_to_hourly_forecast(self, list_of_meteo_data: list) -> list[Forecast]:
+        """Convert data to fit into the hourly forcasts list."""
         _forecasts = []
+        for _forecast in list_of_meteo_data:
+            # remove unwanted data (max, min temperatures)
+            del _forecast[ATTR_FORECAST_NATIVE_TEMP_LOW]
+            del _forecast[ATTR_FORECAST_NATIVE_APPARENT_TEMP]
+            _forecasts.append(_forecast)
+        return _forecasts
+
+    def _convert_to_daily_forecast(self, list_of_meteo_data: list) -> list[Forecast]:
+        """Convert lots of data to fit into the daily forcasts list."""
+        _forecasts = []
+
+        # separete forecasts by dates
+        _forecasts_by_dates = self._separate_forecasts_by_dates(list_of_meteo_data)
+
+        # find sutable forecasts
+        for same_dates_fc in _forecasts_by_dates:
+            # calculate daily min / max temperature
+            min_temp = min(int(i[ATTR_FORECAST_NATIVE_TEMP]) for i in same_dates_fc)
+            max_temp = max(int(i[ATTR_FORECAST_NATIVE_TEMP]) for i in same_dates_fc)
+            # pick forecast closest to 12:00
+            test_date = datetime.combine(
+                datetime.fromisoformat(same_dates_fc[0][ATTR_FORECAST_TIME]).date(),
+                time(12, tzinfo=timezone.utc),
+            )
+            fc_dict = {
+                abs(
+                    test_date.timestamp()
+                    - datetime.fromisoformat(date[ATTR_FORECAST_TIME]).timestamp()
+                ): date
+                for date in same_dates_fc
+            }
+            picked_forecast = fc_dict[min(fc_dict.keys())]
+            # put min /max temperature into daily forcast data
+            picked_forecast[ATTR_FORECAST_NATIVE_TEMP] = max_temp
+            picked_forecast[ATTR_FORECAST_NATIVE_TEMP_LOW] = min_temp
+            _forecasts.append(picked_forecast)
+
+        return _forecasts
+
+    def _get_forecast(self, fc_type=None) -> list[Forecast]:
+        """Return forecast."""
+        # _forecasts = []
         _list_of_meteo_data = []
         # Putting together all data from API, using dates to create a list of dictionaries
         for (
@@ -257,25 +327,25 @@ class DHMZWeather(DHMZEntity, WeatherEntity):
             fc_min_temp,
             fc_max_temp,
             fc_condition,
-            fc_humidity,
-            fc_pressure,
+            # fc_humidity,
+            # fc_pressure,
             fc_temp,
-            fc_dew_point,
-            fc_wind_speed,
-            fc_wind_gust,
-            fc_wind_bearing,
+            # fc_dew_point,
+            # fc_wind_speed,
+            # fc_wind_gust,
+            # fc_wind_bearing,
         ) in zip(
             self.coordinator.data.fc_list_of_dates(self._region),
             self.coordinator.data.fc_list_of_min_temps(self._region),
             self.coordinator.data.fc_list_of_max_temps(self._region),
             self.coordinator.data.fc_list_of_condtions(self._region),
-            self.coordinator.data.fc_list_of_humidities(self._region),
-            self.coordinator.data.fc_list_of_presures(self._region),
+            # self.coordinator.data.fc_list_of_humidities(self._region),
+            # self.coordinator.data.fc_list_of_presures(self._region),
             self.coordinator.data.fc_list_of_temps(self._region),
-            self.coordinator.data.fc_list_of_dew_points(self._region),
-            self.coordinator.data.fc_list_of_wind_speeds(self._region),
-            self.coordinator.data.fc_list_of_wind_gusts(self._region),
-            self.coordinator.data.fc_list_of_wind_bearing(self._region),
+            # self.coordinator.data.fc_list_of_dew_points(self._region),
+            # self.coordinator.data.fc_list_of_wind_speeds(self._region),
+            # self.coordinator.data.fc_list_of_wind_gusts(self._region),
+            # self.coordinator.data.fc_list_of_wind_bearing(self._region),
         ):
             _list_of_meteo_data.append(
                 {
@@ -283,31 +353,39 @@ class DHMZWeather(DHMZEntity, WeatherEntity):
                     ATTR_FORECAST_NATIVE_TEMP_LOW: fc_min_temp,
                     ATTR_FORECAST_NATIVE_TEMP: fc_max_temp,
                     ATTR_FORECAST_CONDITION: fc_condition,
-                    ATTR_FORECAST_HUMIDITY: fc_humidity,
-                    ATTR_FORECAST_NATIVE_PRESSURE: fc_pressure,
+                    # ATTR_FORECAST_HUMIDITY: fc_humidity,
+                    # ATTR_FORECAST_NATIVE_PRESSURE: fc_pressure,
                     ATTR_FORECAST_NATIVE_APPARENT_TEMP: fc_temp,
-                    ATTR_FORECAST_NATIVE_DEW_POINT: fc_dew_point,
-                    ATTR_FORECAST_NATIVE_WIND_SPEED: fc_wind_speed,
-                    ATTR_FORECAST_NATIVE_WIND_GUST_SPEED: fc_wind_gust,
-                    ATTR_FORECAST_WIND_BEARING: fc_wind_bearing,
+                    # ATTR_FORECAST_NATIVE_DEW_POINT: fc_dew_point,
+                    # ATTR_FORECAST_NATIVE_WIND_SPEED: fc_wind_speed,
+                    # ATTR_FORECAST_NATIVE_WIND_GUST_SPEED: fc_wind_gust,
+                    # ATTR_FORECAST_WIND_BEARING: fc_wind_bearing,
                 }
             )
 
-        for _forcast in _list_of_meteo_data:
-            _forecasts.append(_forcast)
+        # Return correct forecast
+        if fc_type == WeatherEntityFeature.FORECAST_HOURLY:
+            # return hourly version
+            return self._convert_to_hourly_forecast(_list_of_meteo_data)
 
-        return _forecasts
+        if fc_type == WeatherEntityFeature.FORECAST_TWICE_DAILY:
+            # return twice-daily version
+            return self._convert_to_daily_forecast(_list_of_meteo_data)
+
+        # return daily version (default)
+        return self._convert_to_daily_forecast(_list_of_meteo_data)
 
     async def async_forecast_hourly(self) -> list[Forecast]:
         """Return hourly forecast."""
-        # return self._get_forecast()
+        LOGGER.debug("weather.py > async_forecast_hourly()")
+        return self._get_forecast(WeatherEntityFeature.FORECAST_HOURLY)
 
     async def async_forecast_twice_daily(self) -> list[Forecast]:
         """Return twice_daily forecast."""
-        # return self._get_forecast()
+        LOGGER.debug("weather.py > async_forecast_twice_daily()")
+        return self._get_forecast(WeatherEntityFeature.FORECAST_TWICE_DAILY)
 
     async def async_forecast_daily(self) -> list[Forecast]:
         """Return daily forecast."""
-        # LOGGER.debug("weather.py > async_forecast_daily(): %s", str(self._get_forecast()))
         LOGGER.debug("weather.py > async_forecast_daily()")
-        return self._get_forecast()
+        return self._get_forecast(WeatherEntityFeature.FORECAST_DAILY)

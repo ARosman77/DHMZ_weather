@@ -13,14 +13,16 @@ from homeassistant.components.sensor import (
 from homeassistant.const import (
     UnitOfTemperature,
     UnitOfPressure,
-    # UnitOfSpeed,
+    UnitOfSpeed,
     # UnitOfPrecipitationDepth,
     PERCENTAGE,
 )
 from homeassistant.helpers.entity import generate_entity_id
 
 
-from .const import DOMAIN, CONF_LOCATION, LOGGER
+from .const import DOMAIN, CONF_LOCATION
+
+# from .const import LOGGER
 from .coordinator import DHMZDataUpdateCoordinator
 from .entity import DHMZEntity
 
@@ -46,6 +48,13 @@ ENTITY_DESCRIPTIONS = (
         native_unit_of_measurement=UnitOfPressure.HPA,
         state_class=SensorStateClass.MEASUREMENT,
     ),
+    SensorEntityDescription(
+        key="ARSO_weather_wind",
+        icon="mdi:weather-windy",
+        device_class=SensorDeviceClass.WIND_SPEED,
+        native_unit_of_measurement=UnitOfSpeed.METERS_PER_SECOND,
+        state_class=SensorStateClass.MEASUREMENT,
+    ),
 )
 
 
@@ -64,6 +73,8 @@ async def async_setup_entry(hass, entry, async_add_devices):
             _data_type = "Vlaga"
         elif entity_description.device_class == SensorDeviceClass.ATMOSPHERIC_PRESSURE:
             _data_type = "Tlak"
+        elif entity_description.device_class == SensorDeviceClass.WIND_SPEED:
+            _data_type = "VjetarBrzina"
         else:
             _data_type = ""
 
@@ -107,12 +118,4 @@ class DHMZSensor(DHMZEntity, SensorEntity):
     @property
     def native_value(self) -> str:
         """Return the native value of the sensor."""
-        LOGGER.debug(
-            "sensor.py > native_value() = %s ",
-            str(
-                self.coordinator.data.current_meteo_data(
-                    self._location, self._data_type
-                )
-            ),
-        )
         return self.coordinator.data.current_meteo_data(self._location, self._data_type)

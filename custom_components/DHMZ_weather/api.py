@@ -12,13 +12,6 @@ import async_timeout
 
 from .const import LOGGER
 
-# posibile conditions, and what should they be translated from
-#    ‘clear-night’
-
-#    ‘cloudy’ = prevCloudy, overcast,
-#    ‘sunny’ = clear, mostClear, slightCloudy
-#    ‘partlycloudy’ = , partCloudy, modCloudy
-
 CONDITION_CLASSES = {
     "clear-night": ["1n"],
     "cloudy": ["5", "6", "5n", "6n"],
@@ -87,11 +80,34 @@ CONDITION_CLASSES = {
         "34n",
         "35n",
     ],
-    "sunny": ["1"],
+    "sunny": ["1", "-"],
     "windy": [],
     "windy-variant": [],
-    "exceptional": ["-"],
+    "exceptional": [],
 }
+
+# Currently not needed
+# But can be used to convert string direction to degrees:
+#   WIND_DIRECTION.index(direction) * 22.5
+WIND_DIRECTION = [
+    "N",
+    "NNE",
+    "NE",
+    "ENE",
+    "E",
+    "ESE",
+    "SE",
+    "SSE",
+    "S",
+    "SSW",
+    "SW",
+    "WSW",
+    "W",
+    "WNW",
+    "NW",
+    "NNW",
+    "N",
+]
 
 
 class DHMZApiClientError(Exception):
@@ -112,16 +128,21 @@ class DHMZMeteoData:
     def __init__(
         self,
         current_data: str,
-        forecast_data: str,
+        forecast_data_3d: str,
+        forecast_data_7d: str | None = None,
+        forecast_data_today: str | None = None,
+        forecast_data_tomorrow: str | None = None,
     ) -> None:
         """Initialize Meteo data class."""
         self._current_data = current_data
-        self._forecast_data = forecast_data
+        self._forecast_data_3d = forecast_data_3d
+        self._forecast_data_7d = forecast_data_7d
+        self._forecast_data_today = forecast_data_today
+        self._forecast_data_tomorrow = forecast_data_tomorrow
         self._meteo_data_all = []
         self._meteo_fc_data_all = []
 
         data_selection = [
-            # "GradIme",
             "Temp",
             "Vlaga",
             "Tlak",
@@ -132,26 +153,35 @@ class DHMZMeteoData:
         ]
 
         data_fc_selection = [
-            "domain_shortTitle",
+            "t_2m",
+            "simbol",
+            "vjetar",
+            "oborina",
         ]
 
+        # Current data processing -> _meteo_data_all
         root = ET.fromstring(current_data)
         for meteo_city_data in root.findall("Grad"):
             meteo_data_location = {}
             meteo_data_location["GradIme"] = meteo_city_data.find("GradIme").text
-            # self._meteo_data_all.append(meteo_data_location)
             meteo_parent = meteo_city_data.find("Podatci")
             for data in data_selection:
                 meteo_data_location[data] = meteo_parent.find(data).text
             self._meteo_data_all.append(meteo_data_location)
-            # LOGGER.debug("data: %s", str(meteo_data_location))
 
-        root = ET.fromstring(forecast_data)
-        for meteo_parent in root.findall("metData"):
-            meteo_data_region = {}
-            for data in data_fc_selection:
-                meteo_data_region[data] = meteo_parent.find(data).text
-            self._meteo_fc_data_all.append(meteo_data_region)
+        # 3 Days forecast data processing -> _meteo_fc_data_all
+        root = ET.fromstring(forecast_data_3d)
+        for meteo_parent in root.findall("grad"):
+            city_name = meteo_parent.attrib["ime"]
+            for date_data in meteo_parent.findall("dan"):
+                meteo_data_region = {}
+                meteo_data_region["GradIme"] = city_name
+                meteo_data_region["datum"] = date_data.attrib["datum"]
+                meteo_data_region["sat"] = date_data.attrib["sat"]
+                for data in data_fc_selection:
+                    meteo_data_region[data] = date_data.find(data).text
+                self._meteo_fc_data_all.append(meteo_data_region)
+        # LOGGER.debug("all_data: %s", str(self._meteo_fc_data_all))
 
     def current_temperature(self, location: str) -> str:
         """Return temperature of the location."""
@@ -168,9 +198,6 @@ class DHMZMeteoData:
 
     def _decode_meteo_condition(self, description: str) -> str:
         """Decode meteo condition to home assistant condition."""
-
-        LOGGER.debug("API.py > _decode_meteo_condition()")
-        # decoding done here:
         try:
             s_ret = [k for k, v in CONDITION_CLASSES.items() if description in v][0]
             return s_ret
@@ -180,16 +207,6 @@ class DHMZMeteoData:
 
     def current_condition(self, location: str) -> str:
         """Return current condition of the location."""
-        LOGGER.debug("API.py > current_condition()")
-        LOGGER.debug(
-            "--> decoding '%s' to condition '%s' ",
-            str(self.current_meteo_data(location, "VrijemeZnak")),
-            str(
-                self._decode_meteo_condition(
-                    self.current_meteo_data(location, "VrijemeZnak")
-                )
-            ),
-        )
         return self._decode_meteo_condition(
             self.current_meteo_data(location, "VrijemeZnak")
         )
@@ -233,63 +250,67 @@ class DHMZMeteoData:
     def list_of_forecast_regions(self) -> list:
         """Return list of possible forecast regions."""
         list_of_regions = []
-        list_of_regions.append("Unknown")
         # Read list of regions for meteo.hr
-        # for meteo_data_region in self._meteo_fc_data_all:
-        #    list_of_regions.append(meteo_data_region["domain_shortTitle"])
+        for meteo_data_region in self._meteo_fc_data_all:
+            list_of_regions.append(meteo_data_region["GradIme"])
         return list(set(list_of_regions))  # Using set to remove duplicate entries
 
     def fc_list_of_dates(self, region) -> list:
         """Return list of dates in the forecast data."""
         decoded_dates = []
-        raw_list_of_dates = self.fc_list_of_meteo_data(region, "valid_UTC")
+        raw_list_of_dates = []
+        # raw_list_of_dates = self.fc_list_of_meteo_data(region, "datum")
+        list_of_dates = self.fc_list_of_meteo_data(region, "datum")
+        list_of_times = self.fc_list_of_meteo_data(region, "sat")
+        for date in zip(list_of_dates, list_of_times):
+            raw_list_of_dates.append(date[0] + " " + date[1] + ":00")
+        # LOGGER.debug("ListOfDates: %s", str(raw_list_of_dates))
         for date in raw_list_of_dates:
             decoded_dates.append(
-                datetime.strptime(date, "%d.%m.%Y %H:%M UTC").isoformat() + "Z"
+                datetime.strptime(date, "%d.%m.%Y. %H:%M").isoformat() + "Z"
             )
+        # LOGGER.debug("ListOfDecodedDates: %s", str(decoded_dates))
         return decoded_dates
 
     def fc_list_of_min_temps(self, region) -> list:
         """Return list of temperatures in the forecast data."""
-        return self.fc_list_of_meteo_data(region, "tnsyn")
+        return self.fc_list_of_meteo_data(region, "t_2m")
 
     def fc_list_of_max_temps(self, region) -> list:
         """Return list of temperatures in the forecast data."""
-        return self.fc_list_of_meteo_data(region, "txsyn")
+        return self.fc_list_of_meteo_data(region, "t_2m")
 
     def fc_list_of_temps(self, region) -> list:
         """Return list of temperatures (avg/apparent) in the forecast data."""
-        return self.fc_list_of_meteo_data(region, "t")
+        return self.fc_list_of_meteo_data(region, "t_2m")
 
     def fc_list_of_condtions(self, region) -> list:
         """Return list of dates in the forecast data."""
         decoded_conditions = []
-        raw_list_of_conditions = self.fc_list_of_meteo_data(
-            region, "nn_icon-wwsyn_icon"
-        )
+        raw_list_of_conditions = self.fc_list_of_meteo_data(region, "simbol")
         for condition in raw_list_of_conditions:
             decoded_conditions.append(self._decode_meteo_condition(condition))
         return decoded_conditions
 
-    def fc_list_of_humidities(self, region) -> list:
-        """Return list of humidities in the forecast data."""
-        return self.fc_list_of_meteo_data(region, "rh")
+    # def fc_list_of_humidities(self, region) -> list:
+    #    """Return list of humidities in the forecast data."""
+    #    return self.fc_list_of_meteo_data(region, "rh")
 
-    def fc_list_of_presures(self, region) -> list:
-        """Return list of presures in the forecast data."""
-        return self.fc_list_of_meteo_data(region, "msl")
+    # def fc_list_of_presures(self, region) -> list:
+    #    """Return list of presures in the forecast data."""
+    #    return self.fc_list_of_meteo_data(region, "msl")
 
-    def fc_list_of_dew_points(self, region) -> list:
-        """Return list of dew points in the forecast data."""
-        return self.fc_list_of_meteo_data(region, "td")
+    # def fc_list_of_dew_points(self, region) -> list:
+    #    """Return list of dew points in the forecast data."""
+    #    return self.fc_list_of_meteo_data(region, "td")
 
     def fc_list_of_wind_speeds(self, region) -> list:
         """Return list of wind speeds in the forecast data."""
         return self.fc_list_of_meteo_data(region, "ff_val")
 
-    def fc_list_of_wind_gusts(self, region) -> list:
-        """Return list of wind gusts in the forecast data."""
-        return self.fc_list_of_meteo_data(region, "ffmax_val")
+    # def fc_list_of_wind_gusts(self, region) -> list:
+    #    """Return list of wind gusts in the forecast data."""
+    #    return self.fc_list_of_meteo_data(region, "ffmax_val")
 
     def fc_list_of_wind_bearing(self, region) -> list:
         """Return list of wind bearings in the forecast data."""
@@ -299,9 +320,7 @@ class DHMZMeteoData:
         """Return list of forcast data for specific region."""
         meteo_data_region = []
         regional_fc_data = [
-            item
-            for item in self._meteo_fc_data_all
-            if item["domain_shortTitle"] == region
+            item for item in self._meteo_fc_data_all if item["GradIme"] == region
         ]
         for data in regional_fc_data:
             meteo_data_region.append(data[data_type])

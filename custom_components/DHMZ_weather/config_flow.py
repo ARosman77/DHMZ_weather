@@ -60,12 +60,14 @@ class DHMZFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                         selector.SelectSelectorConfig(
                             options=list_of_locations,
                             mode=selector.SelectSelectorMode.DROPDOWN,
+                            sort=True,
                         ),
                     ),
                     vol.Required(CONF_REGION): selector.SelectSelector(
                         selector.SelectSelectorConfig(
                             options=list_of_regions,
                             mode=selector.SelectSelectorMode.DROPDOWN,
+                            sort=True,
                         ),
                     ),
                 }
