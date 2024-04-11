@@ -20,7 +20,7 @@ from homeassistant.const import (
 from homeassistant.helpers.entity import generate_entity_id
 
 
-from .const import DOMAIN, CONF_LOCATION
+from .const import DOMAIN, CONF_LOCATION, CONF_SEA_LOCATION
 
 # from .const import LOGGER
 from .coordinator import DHMZDataUpdateCoordinator
@@ -49,12 +49,20 @@ ENTITY_DESCRIPTIONS = (
         state_class=SensorStateClass.MEASUREMENT,
     ),
     SensorEntityDescription(
-        key="ARSO_weather_wind",
+        key="DHMZ_weather_wind",
         icon="mdi:weather-windy",
         device_class=SensorDeviceClass.WIND_SPEED,
         native_unit_of_measurement=UnitOfSpeed.METERS_PER_SECOND,
         state_class=SensorStateClass.MEASUREMENT,
     ),
+    #    SensorEntityDescription(
+    #        key="DHMZ_weather_sea_t",
+    #        icon="mdi:thermometer-water",
+    #        device_class=SensorDeviceClass.TEMPERATURE,
+    #        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+    #        state_class=SensorStateClass.MEASUREMENT,
+    #        entity_category=EntityCate,
+    #    ),
 )
 
 
@@ -68,7 +76,11 @@ async def async_setup_entry(hass, entry, async_add_devices):
             name=entry.data[CONF_LOCATION] + " " + str(entity_description.device_class),
         )
         if entity_description.device_class == SensorDeviceClass.TEMPERATURE:
-            _data_type = "Temp"
+            if entity_description.key == "DHMZ_weather_sea_t":
+                # _data_type = "SeaTemp"
+                _data_type = "Temp"  # temp value
+            else:
+                _data_type = "Temp"
         elif entity_description.device_class == SensorDeviceClass.HUMIDITY:
             _data_type = "Vlaga"
         elif entity_description.device_class == SensorDeviceClass.ATMOSPHERIC_PRESSURE:
@@ -92,6 +104,22 @@ async def async_setup_entry(hass, entry, async_add_devices):
                 unique_id=entry.entry_id,
             )
         )
+
+    # sea temp sensor has to be added manually as it uses different data source
+    devices.append(
+        DHMZSensor(
+            coordinator=coordinator,
+            #entity_description=new_entity_description,
+            location=entry.data[CONF_SEA_LOCATION],
+            data_type="SeaTemp",
+            sensor_entity_id=generate_entity_id(
+                "sensor.{}",
+                "DHMZ_sea_" + entry.data[CONF_SEA_LOCATION] + "_" + _data_type,
+                hass=hass,
+            ),
+            unique_id=entry.entry_id,
+        )
+    )
     async_add_devices(devices)
 
 

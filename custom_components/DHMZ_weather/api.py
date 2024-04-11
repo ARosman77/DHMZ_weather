@@ -132,6 +132,7 @@ class DHMZMeteoData:
         forecast_data_7d: str | None = None,
         forecast_data_today: str | None = None,
         forecast_data_tomorrow: str | None = None,
+        sea_temp_data: str | None = None,
     ) -> None:
         """Initialize Meteo data class."""
         self._current_data = current_data
@@ -139,8 +140,10 @@ class DHMZMeteoData:
         self._forecast_data_7d = forecast_data_7d
         self._forecast_data_today = forecast_data_today
         self._forecast_data_tomorrow = forecast_data_tomorrow
+        self._sea_temp_data = sea_temp_data
         self._meteo_data_all = []
         self._meteo_fc_data_all = []
+        self._meteo_sea_data_all = []
 
         data_selection = [
             "Temp",
@@ -168,6 +171,20 @@ class DHMZMeteoData:
             for data in data_selection:
                 meteo_data_location[data] = meteo_parent.find(data).text
             self._meteo_data_all.append(meteo_data_location)
+
+        # Add sea temperature data to _meteo_data_all
+        root = ET.fromstring(sea_temp_data)
+        for meteo_sea_city_data in root.findall("Podatci"):
+            meteo_data_sea_location = {}
+            for count, data in enumerate(meteo_sea_city_data):
+                if count > 0:
+                    meteo_data_sea_location[data.tag + str(count)] = data.text
+                else:
+                    meteo_data_sea_location[data.tag] = data.text
+            # data with "Postaja" in value contains hours for each "Termin"
+            if "Postaja" not in meteo_data_sea_location["Postaja"]:
+                self._meteo_sea_data_all.append(meteo_data_sea_location)
+        LOGGER.debug("All data: %s", self._meteo_sea_data_all)
 
         # 3 Days forecast data processing -> _meteo_fc_data_all
         root = ET.fromstring(forecast_data_3d)
@@ -254,6 +271,14 @@ class DHMZMeteoData:
         for meteo_data_region in self._meteo_fc_data_all:
             list_of_regions.append(meteo_data_region["GradIme"])
         return list(set(list_of_regions))  # Using set to remove duplicate entries
+
+    def list_of_sea_locations(self) -> list:
+        """Return list of possible sea temperature locations."""
+        list_of_sea_locations = []
+        # Read list of regions for meteo.hr
+        for meteo_data_sea_location in self._meteo_sea_data_all:
+            list_of_sea_locations.append(meteo_data_sea_location["Postaja"])
+        return list_of_sea_locations
 
     def fc_list_of_dates(self, region) -> list:
         """Return list of dates in the forecast data."""
@@ -348,7 +373,13 @@ class DHMZApiClient:
             method="get",
             url="https://prognoza.hr/tri/3d_graf_i_simboli.xml",
         )
-        return DHMZMeteoData(meteo_data_xml, meteo_forecast_xml)
+        meteo_sea_temp_xml = await self._api_wrapper(
+            method="get",
+            url="https://vrijeme.hr/more_n.xml",
+        )
+        return DHMZMeteoData(
+            meteo_data_xml, meteo_forecast_xml, sea_temp_data=meteo_sea_temp_xml
+        )
 
     async def _api_wrapper(
         self,

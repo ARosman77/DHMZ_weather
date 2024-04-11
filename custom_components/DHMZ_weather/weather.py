@@ -64,7 +64,14 @@ from homeassistant.const import (
     # UnitOfLength,
 )
 
-from .const import DOMAIN, CONF_LOCATION, CONF_REGION, ATTRIBUTION, LOGGER
+from .const import (
+    DOMAIN,
+    CONF_LOCATION,
+    CONF_REGION,
+    CONF_SEA_LOCATION,
+    ATTRIBUTION,
+    LOGGER,
+)
 from .coordinator import DHMZDataUpdateCoordinator
 from .entity import DHMZEntity
 
