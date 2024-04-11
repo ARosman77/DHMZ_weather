@@ -251,6 +251,30 @@ class DHMZWeather(DHMZEntity, WeatherEntity):
     # @property
     # def uv_index(self) -> float | None:
 
+    def _separate_forecasts_by_dates(self, list_of_meteo_data: list) -> list:
+        """Sepparate forecasts by dates."""
+        different_dates = []
+        forecasts_by_dates = []
+
+        # extract different dates
+        for fc in list_of_meteo_data:
+            # sort by date
+            different_dates.append(
+                datetime.fromisoformat(fc[ATTR_FORECAST_TIME]).date()
+            )
+        list_of_dates = sorted(set(different_dates))
+
+        # sepparate forecasts by dates
+        for each_date in list_of_dates:
+            same_date_forecasts = [
+                fc
+                for fc in list_of_meteo_data
+                if datetime.fromisoformat(fc[ATTR_FORECAST_TIME]).date() == each_date
+            ]
+            forecasts_by_dates.append(same_date_forecasts)
+
+        return forecasts_by_dates
+
     def _convert_to_hourly_forecast(self, list_of_meteo_data: list) -> list[Forecast]:
         """Convert data to fit into the hourly forcasts list."""
         _forecasts = []
@@ -263,32 +287,16 @@ class DHMZWeather(DHMZEntity, WeatherEntity):
 
     def _convert_to_daily_forecast(self, list_of_meteo_data: list) -> list[Forecast]:
         """Convert lots of data to fit into the daily forcasts list."""
-
         _forecasts = []
-        _dates = []
-        _forecasts_by_dates = []
 
-        # extract different dates
-        for _forecast in list_of_meteo_data:
-            # sort by date
-            _dates.append(datetime.fromisoformat(_forecast[ATTR_FORECAST_TIME]).date())
-        _list_of_dates = sorted(set(_dates))
-
-        # sepparate forecasts by dates
-        for _date in _list_of_dates:
-            test = [
-                d
-                for d in list_of_meteo_data
-                if datetime.fromisoformat(d[ATTR_FORECAST_TIME]).date() == _date
-            ]
-            _forecasts_by_dates.append(test)
+        # separete forecasts by dates
+        _forecasts_by_dates = self._separate_forecasts_by_dates(list_of_meteo_data)
 
         # find sutable forecasts
         for same_dates_fc in _forecasts_by_dates:
             # calculate daily min / max temperature
             min_temp = min(int(i[ATTR_FORECAST_NATIVE_TEMP]) for i in same_dates_fc)
             max_temp = max(int(i[ATTR_FORECAST_NATIVE_TEMP]) for i in same_dates_fc)
-            LOGGER.debug("MinTemp: %s, MaxTemp: %s", min_temp, max_temp)
             # pick forecast closest to 12:00
             test_date = datetime.combine(
                 datetime.fromisoformat(same_dates_fc[0][ATTR_FORECAST_TIME]).date(),
@@ -354,10 +362,6 @@ class DHMZWeather(DHMZEntity, WeatherEntity):
                     # ATTR_FORECAST_WIND_BEARING: fc_wind_bearing,
                 }
             )
-        # There is too much data in 3days forecast, so we should reduce it a bit
-        # Maybe a sepparate functions that then returns list of forecasts
-        # for _forcast in _list_of_meteo_data:
-        #    _forecasts.append(_forcast)
 
         # Return correct forecast
         if fc_type == WeatherEntityFeature.FORECAST_HOURLY:
