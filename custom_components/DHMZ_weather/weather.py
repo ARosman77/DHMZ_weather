@@ -251,9 +251,17 @@ class DHMZWeather(DHMZEntity, WeatherEntity):
     # @property
     # def uv_index(self) -> float | None:
 
+    def _convert_to_hourly_forecast(self, list_of_meteo_data: list) -> list[Forecast]:
+        """Convert data to fit into the hourly forcasts list."""
+        _forecasts = []
+        for _forecast in list_of_meteo_data:
+            _forecasts.append(_forecast)
+        return _forecasts
+
     def _convert_to_daily_forecast(self, list_of_meteo_data: list) -> list[Forecast]:
         """Convert lots of data to fit into the daily forcasts list."""
 
+        _forecasts = []
         _dates = []
         _forecasts_by_dates = []
 
@@ -271,16 +279,24 @@ class DHMZWeather(DHMZEntity, WeatherEntity):
                 if datetime.fromisoformat(d["datetime"]).date() == _date
             ]
             _forecasts_by_dates.append(test)
-        # LOGGER.debug("Test: %s", _forecasts_by_dates)
 
         # find sutable forecasts
-        for picked in _forecasts_by_dates:
-            LOGGER.debug("Picked: %s", picked["datetime"])
+        for same_dates_fc in _forecasts_by_dates:
+            # pick forecast closest to 12:00
+            test_date = datetime.combine(
+                datetime.fromisoformat(same_dates_fc[0]["datetime"]).date(),
+                time(12, tzinfo=timezone.utc),
+            )
+            fc_dict = {
+                abs(
+                    test_date.timestamp()
+                    - datetime.fromisoformat(date["datetime"]).timestamp()
+                ): date
+                for date in same_dates_fc
+            }
+            picked_forecast = fc_dict[min(fc_dict.keys())]
+            _forecasts.append(picked_forecast)
 
-        # keep this so it doesn't report error
-        _forecasts = []
-        for _forecast in list_of_meteo_data:
-            _forecasts.append(_forecast)
         return _forecasts
 
     def _get_forecast(self, fc_type=None) -> list[Forecast]:
@@ -336,7 +352,7 @@ class DHMZWeather(DHMZEntity, WeatherEntity):
         # Return correct forecast
         if fc_type == WeatherEntityFeature.FORECAST_HOURLY:
             # return hourly version
-            return self._convert_to_daily_forecast(_list_of_meteo_data)
+            return self._convert_to_hourly_forecast(_list_of_meteo_data)
 
         if fc_type == WeatherEntityFeature.FORECAST_TWICE_DAILY:
             # return twice-daily version
