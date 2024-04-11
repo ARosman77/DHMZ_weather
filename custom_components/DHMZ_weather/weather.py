@@ -282,6 +282,10 @@ class DHMZWeather(DHMZEntity, WeatherEntity):
 
         # find sutable forecasts
         for same_dates_fc in _forecasts_by_dates:
+            # calculate daily min / max temperature
+            min_temp = min(int(i["native_temperature"]) for i in same_dates_fc)
+            max_temp = max(int(i["native_temperature"]) for i in same_dates_fc)
+            LOGGER.debug("MinTemp: %s, MaxTemp: %s", min_temp, max_temp)
             # pick forecast closest to 12:00
             test_date = datetime.combine(
                 datetime.fromisoformat(same_dates_fc[0]["datetime"]).date(),
@@ -295,6 +299,8 @@ class DHMZWeather(DHMZEntity, WeatherEntity):
                 for date in same_dates_fc
             }
             picked_forecast = fc_dict[min(fc_dict.keys())]
+            picked_forecast["native_temperature"] = max_temp
+            picked_forecast["native_templow"] = min_temp
             _forecasts.append(picked_forecast)
 
         return _forecasts
