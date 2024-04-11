@@ -283,7 +283,7 @@ class DHMZWeather(DHMZEntity, WeatherEntity):
             _forecasts.append(_forecast)
         return _forecasts
 
-    def _get_forecast(self) -> list[Forecast]:
+    def _get_forecast(self, fc_type=None) -> list[Forecast]:
         """Return forecast."""
         # _forecasts = []
         _list_of_meteo_data = []
@@ -333,19 +333,29 @@ class DHMZWeather(DHMZEntity, WeatherEntity):
         # for _forcast in _list_of_meteo_data:
         #    _forecasts.append(_forcast)
 
+        # Return correct forecast
+        if fc_type == WeatherEntityFeature.FORECAST_HOURLY:
+            # return hourly version
+            return self._convert_to_daily_forecast(_list_of_meteo_data)
+
+        if fc_type == WeatherEntityFeature.FORECAST_TWICE_DAILY:
+            # return twice-daily version
+            return self._convert_to_daily_forecast(_list_of_meteo_data)
+
+        # return daily version (default)
         return self._convert_to_daily_forecast(_list_of_meteo_data)
 
     async def async_forecast_hourly(self) -> list[Forecast]:
         """Return hourly forecast."""
         LOGGER.debug("weather.py > async_forecast_hourly()")
-        return self._get_forecast()
+        return self._get_forecast(WeatherEntityFeature.FORECAST_HOURLY)
 
     async def async_forecast_twice_daily(self) -> list[Forecast]:
         """Return twice_daily forecast."""
         LOGGER.debug("weather.py > async_forecast_twice_daily()")
-        return self._get_forecast()
+        return self._get_forecast(WeatherEntityFeature.FORECAST_TWICE_DAILY)
 
     async def async_forecast_daily(self) -> list[Forecast]:
         """Return daily forecast."""
         LOGGER.debug("weather.py > async_forecast_daily()")
-        return self._get_forecast()
+        return self._get_forecast(WeatherEntityFeature.FORECAST_DAILY)
