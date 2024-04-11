@@ -20,7 +20,9 @@ from homeassistant.const import (
 from homeassistant.helpers.entity import generate_entity_id
 
 
-from .const import DOMAIN, CONF_LOCATION, LOGGER
+from .const import DOMAIN, CONF_LOCATION
+
+# from .const import LOGGER
 from .coordinator import DHMZDataUpdateCoordinator
 from .entity import DHMZEntity
 
