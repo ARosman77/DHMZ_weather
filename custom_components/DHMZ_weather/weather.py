@@ -255,6 +255,9 @@ class DHMZWeather(DHMZEntity, WeatherEntity):
         """Convert data to fit into the hourly forcasts list."""
         _forecasts = []
         for _forecast in list_of_meteo_data:
+            # remove unwanted data
+            del _forecast[ATTR_FORECAST_NATIVE_TEMP_LOW]
+            del _forecast[ATTR_FORECAST_NATIVE_APPARENT_TEMP]
             _forecasts.append(_forecast)
         return _forecasts
 
