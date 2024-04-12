@@ -68,7 +68,6 @@ from .const import (
     DOMAIN,
     CONF_LOCATION,
     CONF_REGION,
-    CONF_SEA_LOCATION,
     ATTRIBUTION,
     LOGGER,
 )

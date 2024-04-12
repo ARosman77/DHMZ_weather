@@ -172,18 +172,34 @@ class DHMZMeteoData:
                 meteo_data_location[data] = meteo_parent.find(data).text
             self._meteo_data_all.append(meteo_data_location)
 
-        # Add sea temperature data to _meteo_data_all
+        # Sea temperature data -> _meteo_sea_data_all
+        list_of_hours = []
         root = ET.fromstring(sea_temp_data)
-        for meteo_sea_city_data in root.findall("Podatci"):
-            meteo_data_sea_location = {}
-            for count, data in enumerate(meteo_sea_city_data):
-                if count > 0:
-                    meteo_data_sea_location[data.tag + str(count)] = data.text
-                else:
-                    meteo_data_sea_location[data.tag] = data.text
-            # data with "Postaja" in value contains hours for each "Termin"
-            if "Postaja" not in meteo_data_sea_location["Postaja"]:
-                self._meteo_sea_data_all.append(meteo_data_sea_location)
+        sea_data_date = root.find("Datum").text
+        LOGGER.debug("Datum: %s", str(sea_data_date))
+        for count_locations, meteo_sea_data in enumerate(root.findall("Podatci")):
+            if count_locations > 0:
+                meteo_sea_data_location = {}
+                for count, data in enumerate(meteo_sea_data):
+                    if count > 0:
+                        if data.text is not None:
+                            # only last Termin with value is used as this is dictonary
+                            meteo_sea_data_location[data.tag] = data.text
+                            meteo_sea_data_location["datetime"] = list_of_hours[count]
+                    else:
+                        meteo_sea_data_location[data.tag] = data.text
+                self._meteo_sea_data_all.append(meteo_sea_data_location)
+            else:
+                for count, data in enumerate(meteo_sea_data):
+                    if count > 0:
+                        list_of_hours.append(
+                            datetime.strptime(
+                                (sea_data_date + " " + data.text + ":00"),
+                                "%d.%m.%Y %H:%M",
+                            ).isoformat()
+                            + "Z"
+                        )
+        LOGGER.debug("list_of_hours: %s", list_of_hours)
         LOGGER.debug("All data: %s", self._meteo_sea_data_all)
 
         # 3 Days forecast data processing -> _meteo_fc_data_all
@@ -249,11 +265,20 @@ class DHMZMeteoData:
     #    return float(visibility) if visibility else None
 
     def current_meteo_data(self, location: str, data_type: str) -> str:
-        """Return temperature of the location."""
+        """Return data_type of the location."""
         meteo_data_location = next(
             (item for item in self._meteo_data_all if item["GradIme"] == location),
             None,
         )
+        return None if meteo_data_location is None else meteo_data_location[data_type]
+
+    def current_sea_temp_data(self, location: str, data_type: str) -> str:
+        """Return sea temperature of the location."""
+        meteo_data_location = next(
+            (item for item in self._meteo_sea_data_all if item["Postaja"] == location),
+            None,
+        )
+        LOGGER.debug("current_sea_temp_data: %s", meteo_data_location[data_type])
         return None if meteo_data_location is None else meteo_data_location[data_type]
 
     def list_of_locations(self) -> list:

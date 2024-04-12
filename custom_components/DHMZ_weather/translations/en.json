@@ -2,11 +2,11 @@
     "config": {
         "step": {
             "user": {
-                "description": "You need to choose location for the current meteo data and region for the forcast.",
+                "description": "You need to choose location for the current meteo data, location for the forcast and location for the sea temperature data.",
                 "data": {
-                    "meteo_location": "Location",
-                    "meteo_region": "Region",
-                    "meteo_sea_location": "Sea Location"
+                    "meteo_location": "Current weather location",
+                    "meteo_region": "Weather forecast location",
+                    "meteo_sea_location": "Sea temperature location"
                 }
             }
         },
