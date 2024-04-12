@@ -14,7 +14,7 @@ from .api import (
     DHMZApiClientError,
     DHMZMeteoData,
 )
-from .const import DOMAIN, LOGGER, CONF_LOCATION, CONF_REGION
+from .const import DOMAIN, LOGGER, CONF_LOCATION, CONF_REGION, CONF_SEA_LOCATION
 
 
 class DHMZFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
@@ -32,6 +32,7 @@ class DHMZFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         # Get list of locations to choose from.
         list_of_locations = await self._return_locations()
         list_of_regions = await self._return_regions()
+        list_of_sea_locations = await self._return_sea_locations()
 
         # Present settings UI.
         if user_input is not None:
@@ -70,6 +71,13 @@ class DHMZFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                             sort=True,
                         ),
                     ),
+                    vol.Required(CONF_SEA_LOCATION): selector.SelectSelector(
+                        selector.SelectSelectorConfig(
+                            options=list_of_sea_locations,
+                            mode=selector.SelectSelectorMode.DROPDOWN,
+                            sort=True,
+                        ),
+                    ),
                 }
             ),
             errors=_errors,
@@ -99,3 +107,12 @@ class DHMZFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         meteo_data: DHMZMeteoData
         meteo_data = await client.async_get_data()
         return meteo_data.list_of_forecast_regions()
+
+    async def _return_sea_locations(self) -> list:
+        """Get all possible sea locations."""
+        client = DHMZApiClient(
+            session=async_create_clientsession(self.hass),
+        )
+        meteo_data: DHMZMeteoData
+        meteo_data = await client.async_get_data()
+        return meteo_data.list_of_sea_locations()

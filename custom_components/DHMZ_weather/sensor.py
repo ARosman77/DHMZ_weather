@@ -20,9 +20,9 @@ from homeassistant.const import (
 from homeassistant.helpers.entity import generate_entity_id
 
 
-from .const import DOMAIN, CONF_LOCATION
+from .const import DOMAIN, CONF_LOCATION, CONF_SEA_LOCATION
 
-# from .const import LOGGER
+from .const import LOGGER
 from .coordinator import DHMZDataUpdateCoordinator
 from .entity import DHMZEntity
 
@@ -49,7 +49,7 @@ ENTITY_DESCRIPTIONS = (
         state_class=SensorStateClass.MEASUREMENT,
     ),
     SensorEntityDescription(
-        key="ARSO_weather_wind",
+        key="DHMZ_weather_wind",
         icon="mdi:weather-windy",
         device_class=SensorDeviceClass.WIND_SPEED,
         native_unit_of_measurement=UnitOfSpeed.METERS_PER_SECOND,
@@ -92,9 +92,33 @@ async def async_setup_entry(hass, entry, async_add_devices):
                 unique_id=entry.entry_id,
             )
         )
+
+    # sea temp sensor has to be added manually as it uses different data source
+    devices.append(
+        DHMZCustomSensor(
+            coordinator=coordinator,
+            entity_description=SensorEntityDescription(
+                key="DHMZ_weather_sea_t",
+                icon="mdi:thermometer-water",
+                device_class=SensorDeviceClass.TEMPERATURE,
+                native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+                state_class=SensorStateClass.MEASUREMENT,
+                name=entry.data[CONF_LOCATION] + " sea temperature",
+            ),
+            location=entry.data[CONF_SEA_LOCATION],
+            data_type="SeaTemp",
+            sensor_entity_id=generate_entity_id(
+                "sensor.{}",
+                "DHMZ_" + entry.data[CONF_SEA_LOCATION] + "_sea_t",
+                hass=hass,
+            ),
+            unique_id=entry.entry_id,
+        )
+    )
     async_add_devices(devices)
 
 
+# standard sensor class
 class DHMZSensor(DHMZEntity, SensorEntity):
     """DHMZ_weather Sensor class."""
 
@@ -119,3 +143,40 @@ class DHMZSensor(DHMZEntity, SensorEntity):
     def native_value(self) -> str:
         """Return the native value of the sensor."""
         return self.coordinator.data.current_meteo_data(self._location, self._data_type)
+
+
+# custom sensor class
+class DHMZCustomSensor(DHMZEntity, SensorEntity):
+    """DHMZ Custom Sensor class."""
+
+    def __init__(
+        self,
+        coordinator: DHMZDataUpdateCoordinator,
+        entity_description: SensorEntityDescription,
+        location: str,
+        data_type: str,
+        sensor_entity_id: str | None = None,
+        unique_id: str | None = None,
+    ) -> None:
+        """Initialize the sensor class."""
+        super().__init__(coordinator)
+        self.entity_description = entity_description
+        self._location = location
+        self._data_type = data_type
+        self.entity_id = sensor_entity_id
+        self._attr_unique_id = unique_id + self._location + self._data_type
+
+    @property
+    def native_value(self) -> str:
+        """Return the native value of the sensor."""
+        return self.coordinator.data.current_sea_temp_data(self._location, "Termin")
+
+    @property
+    def extra_state_attributes(self):
+        """Return additional attributes."""
+        LOGGER.debug("extra_state_attributes")
+        return {
+            "datetime": self.coordinator.data.current_sea_temp_data(
+                self._location, "datetime"
+            )
+        }
