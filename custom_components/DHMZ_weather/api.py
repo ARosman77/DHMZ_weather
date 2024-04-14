@@ -194,10 +194,9 @@ class DHMZMeteoData:
                     if count > 0:
                         list_of_hours.append(
                             datetime.strptime(
-                                (sea_data_date + " " + data.text + ":00"),
-                                "%d.%m.%Y %H:%M",
+                                (sea_data_date + " " + data.text + ":00 +0200"),
+                                "%d.%m.%Y %H:%M %z",
                             ).isoformat()
-                            + "Z"
                         )
         LOGGER.debug("list_of_hours: %s", list_of_hours)
         LOGGER.debug("All data: %s", self._meteo_sea_data_all)
@@ -389,7 +388,6 @@ class DHMZApiClient:
 
     async def async_get_data(self) -> any:
         """Get data from the API."""
-        # pylint: disable=line-too-long
         meteo_data_xml = await self._api_wrapper(
             method="get",
             url="https://vrijeme.hr/hrvatska_n.xml",
