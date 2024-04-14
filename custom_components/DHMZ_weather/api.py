@@ -163,58 +163,82 @@ class DHMZMeteoData:
         ]
 
         # Current data processing -> _meteo_data_all
-        root = ET.fromstring(current_data)
-        for meteo_city_data in root.findall("Grad"):
-            meteo_data_location = {}
-            meteo_data_location["GradIme"] = meteo_city_data.find("GradIme").text
-            meteo_parent = meteo_city_data.find("Podatci")
-            for data in data_selection:
-                meteo_data_location[data] = meteo_parent.find(data).text
-            self._meteo_data_all.append(meteo_data_location)
+        try:
+            root = ET.fromstring(current_data)
+            for meteo_city_data in root.findall("Grad"):
+                meteo_data_location = {}
+                meteo_data_location["GradIme"] = meteo_city_data.find("GradIme").text
+                meteo_parent = meteo_city_data.find("Podatci")
+                for data in data_selection:
+                    meteo_data_location[data] = meteo_parent.find(data).text
+                self._meteo_data_all.append(meteo_data_location)
+        except ET.ParseError:
+            # log error, but don't fill data, should return None for all data
+            LOGGER.error(
+                "Parse Error %d processing https://vrijeme.hr/hrvatska_n.xml @ %s",
+                ET.ParseError.code,
+                ET.ParseError.position,
+            )
 
         # Sea temperature data -> _meteo_sea_data_all
-        list_of_hours = []
-        root = ET.fromstring(sea_temp_data)
-        sea_data_date = root.find("Datum").text
-        LOGGER.debug("Datum: %s", str(sea_data_date))
-        for count_locations, meteo_sea_data in enumerate(root.findall("Podatci")):
-            if count_locations > 0:
-                meteo_sea_data_location = {}
-                for count, data in enumerate(meteo_sea_data):
-                    if count > 0:
-                        if data.text is not None:
-                            # only last Termin with value is used as this is dictonary
+        try:
+            list_of_hours = []
+            root = ET.fromstring(sea_temp_data)
+            sea_data_date = root.find("Datum").text
+            # LOGGER.debug("Datum: %s", str(sea_data_date))
+            for count_locations, meteo_sea_data in enumerate(root.findall("Podatci")):
+                if count_locations > 0:
+                    meteo_sea_data_location = {}
+                    for count, data in enumerate(meteo_sea_data):
+                        if count > 0:
+                            if data.text is not None:
+                                # only last Termin with value is used as this is dictonary
+                                meteo_sea_data_location[data.tag] = data.text
+                                meteo_sea_data_location["datetime"] = list_of_hours[
+                                    count
+                                ]
+                        else:
                             meteo_sea_data_location[data.tag] = data.text
-                            meteo_sea_data_location["datetime"] = list_of_hours[count]
-                    else:
-                        meteo_sea_data_location[data.tag] = data.text
-                self._meteo_sea_data_all.append(meteo_sea_data_location)
-            else:
-                for count, data in enumerate(meteo_sea_data):
-                    if count > 0:
-                        list_of_hours.append(
-                            datetime.strptime(
-                                (sea_data_date + " " + data.text + ":00"),
-                                "%d.%m.%Y %H:%M",
-                            ).isoformat()
-                            + "Z"
-                        )
-        LOGGER.debug("list_of_hours: %s", list_of_hours)
-        LOGGER.debug("All data: %s", self._meteo_sea_data_all)
+                    self._meteo_sea_data_all.append(meteo_sea_data_location)
+                else:
+                    for count, data in enumerate(meteo_sea_data):
+                        if count > 0:
+                            list_of_hours.append(
+                                datetime.strptime(
+                                    (sea_data_date + " " + data.text + ":00 +0200"),
+                                    "%d.%m.%Y %H:%M %z",
+                                ).isoformat()
+                            )
+            # LOGGER.debug("list_of_hours: %s", list_of_hours)
+            # LOGGER.debug("All data: %s", self._meteo_sea_data_all)
+        except ET.ParseError:
+            # log error, but don't fill data, should return None for all data
+            LOGGER.error(
+                "Parse Error %d processing https://vrijeme.hr/more_n.xml @ %s",
+                ET.ParseError.code,
+                ET.ParseError.position,
+            )
 
         # 3 Days forecast data processing -> _meteo_fc_data_all
-        root = ET.fromstring(forecast_data_3d)
-        for meteo_parent in root.findall("grad"):
-            city_name = meteo_parent.attrib["ime"]
-            for date_data in meteo_parent.findall("dan"):
-                meteo_data_region = {}
-                meteo_data_region["GradIme"] = city_name
-                meteo_data_region["datum"] = date_data.attrib["datum"]
-                meteo_data_region["sat"] = date_data.attrib["sat"]
-                for data in data_fc_selection:
-                    meteo_data_region[data] = date_data.find(data).text
-                self._meteo_fc_data_all.append(meteo_data_region)
-        # LOGGER.debug("all_data: %s", str(self._meteo_fc_data_all))
+        try:
+            root = ET.fromstring(forecast_data_3d)
+            for meteo_parent in root.findall("grad"):
+                city_name = meteo_parent.attrib["ime"]
+                for date_data in meteo_parent.findall("dan"):
+                    meteo_data_region = {}
+                    meteo_data_region["GradIme"] = city_name
+                    meteo_data_region["datum"] = date_data.attrib["datum"]
+                    meteo_data_region["sat"] = date_data.attrib["sat"]
+                    for data in data_fc_selection:
+                        meteo_data_region[data] = date_data.find(data).text
+                    self._meteo_fc_data_all.append(meteo_data_region)
+        except ET.ParseError:
+            # log error, but don't fill data, should return None for all data
+            LOGGER.error(
+                "Parse Error %d processing https://prognoza.hr/tri/3d_graf_i_simboli.xml @ %s",
+                ET.ParseError.code,
+                ET.ParseError.position,
+            )
 
     def current_temperature(self, location: str) -> str:
         """Return temperature of the location."""
@@ -278,14 +302,14 @@ class DHMZMeteoData:
             (item for item in self._meteo_sea_data_all if item["Postaja"] == location),
             None,
         )
-        LOGGER.debug("current_sea_temp_data: %s", meteo_data_location[data_type])
+        # LOGGER.debug("current_sea_temp_data: %s", meteo_data_location[data_type])
         return None if meteo_data_location is None else meteo_data_location[data_type]
 
     def list_of_locations(self) -> list:
         """Return list of possible locations."""
         list_of_locations = []
         for meteo_data_location in self._meteo_data_all:
-            LOGGER.debug("Location : %s", meteo_data_location["GradIme"])
+            # LOGGER.debug("Location : %s", meteo_data_location["GradIme"])
             list_of_locations.append(meteo_data_location["GradIme"])
         return list_of_locations
 
@@ -313,11 +337,11 @@ class DHMZMeteoData:
         list_of_dates = self.fc_list_of_meteo_data(region, "datum")
         list_of_times = self.fc_list_of_meteo_data(region, "sat")
         for date in zip(list_of_dates, list_of_times):
-            raw_list_of_dates.append(date[0] + " " + date[1] + ":00")
+            raw_list_of_dates.append(date[0] + " " + date[1] + ":00 +0200")
         # LOGGER.debug("ListOfDates: %s", str(raw_list_of_dates))
         for date in raw_list_of_dates:
             decoded_dates.append(
-                datetime.strptime(date, "%d.%m.%Y. %H:%M").isoformat() + "Z"
+                datetime.strptime(date, "%d.%m.%Y. %H:%M %z").isoformat()
             )
         # LOGGER.debug("ListOfDecodedDates: %s", str(decoded_dates))
         return decoded_dates
@@ -389,7 +413,6 @@ class DHMZApiClient:
 
     async def async_get_data(self) -> any:
         """Get data from the API."""
-        # pylint: disable=line-too-long
         meteo_data_xml = await self._api_wrapper(
             method="get",
             url="https://vrijeme.hr/hrvatska_n.xml",
