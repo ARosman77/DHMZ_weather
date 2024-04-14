@@ -337,11 +337,11 @@ class DHMZMeteoData:
         list_of_dates = self.fc_list_of_meteo_data(region, "datum")
         list_of_times = self.fc_list_of_meteo_data(region, "sat")
         for date in zip(list_of_dates, list_of_times):
-            raw_list_of_dates.append(date[0] + " " + date[1] + ":00")
+            raw_list_of_dates.append(date[0] + " " + date[1] + ":00 +0200")
         # LOGGER.debug("ListOfDates: %s", str(raw_list_of_dates))
         for date in raw_list_of_dates:
             decoded_dates.append(
-                datetime.strptime(date, "%d.%m.%Y. %H:%M").isoformat() + "Z"
+                datetime.strptime(date, "%d.%m.%Y. %H:%M %z").isoformat()
             )
         # LOGGER.debug("ListOfDecodedDates: %s", str(decoded_dates))
         return decoded_dates
