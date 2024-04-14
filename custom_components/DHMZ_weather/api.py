@@ -174,11 +174,7 @@ class DHMZMeteoData:
                 self._meteo_data_all.append(meteo_data_location)
         except ET.ParseError:
             # log error, but don't fill data, should return None for all data
-            LOGGER.error(
-                "Parse Error %d processing https://vrijeme.hr/hrvatska_n.xml @ %s",
-                ET.ParseError.code,
-                ET.ParseError.position,
-            )
+            LOGGER.error("Parse Error processing https://vrijeme.hr/hrvatska_n.xml @ ")
 
         # Sea temperature data -> _meteo_sea_data_all
         try:
@@ -193,10 +189,11 @@ class DHMZMeteoData:
                         if count > 0:
                             if data.text is not None:
                                 # only last Termin with value is used as this is dictonary
-                                meteo_sea_data_location[data.tag] = data.text
-                                meteo_sea_data_location["datetime"] = list_of_hours[
-                                    count
-                                ]
+                                if count <= len(list_of_hours):
+                                    meteo_sea_data_location[data.tag] = data.text
+                                    meteo_sea_data_location["datetime"] = list_of_hours[
+                                        count - 1
+                                    ]
                         else:
                             meteo_sea_data_location[data.tag] = data.text
                     self._meteo_sea_data_all.append(meteo_sea_data_location)
@@ -213,11 +210,7 @@ class DHMZMeteoData:
             # LOGGER.debug("All data: %s", self._meteo_sea_data_all)
         except ET.ParseError:
             # log error, but don't fill data, should return None for all data
-            LOGGER.error(
-                "Parse Error %d processing https://vrijeme.hr/more_n.xml @ %s",
-                ET.ParseError.code,
-                ET.ParseError.position,
-            )
+            LOGGER.error("Parse Error processing https://vrijeme.hr/more_n.xml")
 
         # 3 Days forecast data processing -> _meteo_fc_data_all
         try:
@@ -235,9 +228,7 @@ class DHMZMeteoData:
         except ET.ParseError:
             # log error, but don't fill data, should return None for all data
             LOGGER.error(
-                "Parse Error %d processing https://prognoza.hr/tri/3d_graf_i_simboli.xml @ %s",
-                ET.ParseError.code,
-                ET.ParseError.position,
+                "Parse Error processing https://prognoza.hr/tri/3d_graf_i_simboli.xml"
             )
 
     def current_temperature(self, location: str) -> str:

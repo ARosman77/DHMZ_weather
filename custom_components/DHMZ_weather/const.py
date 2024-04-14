@@ -6,7 +6,7 @@ LOGGER: Logger = getLogger(__package__)
 
 NAME = "DHMZ Weather"
 DOMAIN = "DHMZ_weather"
-VERSION = "0.1.1"
+VERSION = "0.1.2"
 ATTRIBUTION = "Data provided by DHMZ (http://www.meteo.hr/)."
 
 CONF_LOCATION = "meteo_location"
