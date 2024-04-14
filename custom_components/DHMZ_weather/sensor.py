@@ -22,7 +22,7 @@ from homeassistant.helpers.entity import generate_entity_id
 
 from .const import DOMAIN, CONF_LOCATION, CONF_SEA_LOCATION
 
-from .const import LOGGER
+# from .const import LOGGER
 from .coordinator import DHMZDataUpdateCoordinator
 from .entity import DHMZEntity
 
@@ -174,7 +174,7 @@ class DHMZCustomSensor(DHMZEntity, SensorEntity):
     @property
     def extra_state_attributes(self):
         """Return additional attributes."""
-        LOGGER.debug("extra_state_attributes")
+        # LOGGER.debug("extra_state_attributes")
         return {
             "datetime": self.coordinator.data.current_sea_temp_data(
                 self._location, "datetime"

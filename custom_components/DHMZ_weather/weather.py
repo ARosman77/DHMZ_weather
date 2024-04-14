@@ -69,8 +69,9 @@ from .const import (
     CONF_LOCATION,
     CONF_REGION,
     ATTRIBUTION,
-    LOGGER,
 )
+
+# from .const import LOGGER
 from .coordinator import DHMZDataUpdateCoordinator
 from .entity import DHMZEntity
 
@@ -151,10 +152,10 @@ class DHMZWeather(DHMZEntity, WeatherEntity):
     @property
     def native_temperature(self):
         """Return the platform temperature."""
-        LOGGER.debug(
-            "weather.py > native_temperature = %s °C",
-            str(self.coordinator.data.current_temperature(self._location)),
-        )
+        # LOGGER.debug(
+        #    "weather.py > native_temperature = %s °C",
+        #    str(self.coordinator.data.current_temperature(self._location)),
+        # )
         return self.coordinator.data.current_temperature(self._location)
 
     @property
@@ -165,10 +166,10 @@ class DHMZWeather(DHMZEntity, WeatherEntity):
     @property
     def native_pressure(self):
         """Return platform air pressure."""
-        LOGGER.debug(
-            "weather.py > native_pressure = %s hPa",
-            str(self.coordinator.data.current_air_pressure(self._location)),
-        )
+        # LOGGER.debug(
+        #    "weather.py > native_pressure = %s hPa",
+        #    str(self.coordinator.data.current_air_pressure(self._location)),
+        # )
         return self.coordinator.data.current_air_pressure(self._location)
 
     @property
@@ -179,10 +180,10 @@ class DHMZWeather(DHMZEntity, WeatherEntity):
     @property
     def humidity(self):
         """Return the humidity."""
-        LOGGER.debug(
-            "weather.py > native_humidity: %s",
-            str(self.coordinator.data.current_humidity(self._location)),
-        )
+        # LOGGER.debug(
+        #    "weather.py > native_humidity: %s",
+        #    str(self.coordinator.data.current_humidity(self._location)),
+        # )
         return self.coordinator.data.current_humidity(self._location)
 
     # seems to not be supported
@@ -217,10 +218,10 @@ class DHMZWeather(DHMZEntity, WeatherEntity):
     @property
     def wind_bearing(self):
         """Return the wind bearing."""
-        LOGGER.debug(
-            "weather.py > wind_bearing: %s°",
-            str(self.coordinator.data.current_wind_direction(self._location)),
-        )
+        # LOGGER.debug(
+        #    "weather.py > wind_bearing: %s°",
+        #    str(self.coordinator.data.current_wind_direction(self._location)),
+        # )
         return self.coordinator.data.current_wind_direction(self._location)
 
     # @property
@@ -383,15 +384,15 @@ class DHMZWeather(DHMZEntity, WeatherEntity):
 
     async def async_forecast_hourly(self) -> list[Forecast]:
         """Return hourly forecast."""
-        LOGGER.debug("weather.py > async_forecast_hourly()")
+        # LOGGER.debug("weather.py > async_forecast_hourly()")
         return self._get_forecast(WeatherEntityFeature.FORECAST_HOURLY)
 
     async def async_forecast_twice_daily(self) -> list[Forecast]:
         """Return twice_daily forecast."""
-        LOGGER.debug("weather.py > async_forecast_twice_daily()")
+        # LOGGER.debug("weather.py > async_forecast_twice_daily()")
         return self._get_forecast(WeatherEntityFeature.FORECAST_TWICE_DAILY)
 
     async def async_forecast_daily(self) -> list[Forecast]:
         """Return daily forecast."""
-        LOGGER.debug("weather.py > async_forecast_daily()")
+        # LOGGER.debug("weather.py > async_forecast_daily()")
         return self._get_forecast(WeatherEntityFeature.FORECAST_DAILY)

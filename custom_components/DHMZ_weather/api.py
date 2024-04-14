@@ -185,7 +185,7 @@ class DHMZMeteoData:
             list_of_hours = []
             root = ET.fromstring(sea_temp_data)
             sea_data_date = root.find("Datum").text
-            LOGGER.debug("Datum: %s", str(sea_data_date))
+            # LOGGER.debug("Datum: %s", str(sea_data_date))
             for count_locations, meteo_sea_data in enumerate(root.findall("Podatci")):
                 if count_locations > 0:
                     meteo_sea_data_location = {}
@@ -209,8 +209,8 @@ class DHMZMeteoData:
                                     "%d.%m.%Y %H:%M %z",
                                 ).isoformat()
                             )
-            LOGGER.debug("list_of_hours: %s", list_of_hours)
-            LOGGER.debug("All data: %s", self._meteo_sea_data_all)
+            # LOGGER.debug("list_of_hours: %s", list_of_hours)
+            # LOGGER.debug("All data: %s", self._meteo_sea_data_all)
         except ET.ParseError:
             # log error, but don't fill data, should return None for all data
             LOGGER.error(
@@ -302,14 +302,14 @@ class DHMZMeteoData:
             (item for item in self._meteo_sea_data_all if item["Postaja"] == location),
             None,
         )
-        LOGGER.debug("current_sea_temp_data: %s", meteo_data_location[data_type])
+        # LOGGER.debug("current_sea_temp_data: %s", meteo_data_location[data_type])
         return None if meteo_data_location is None else meteo_data_location[data_type]
 
     def list_of_locations(self) -> list:
         """Return list of possible locations."""
         list_of_locations = []
         for meteo_data_location in self._meteo_data_all:
-            LOGGER.debug("Location : %s", meteo_data_location["GradIme"])
+            # LOGGER.debug("Location : %s", meteo_data_location["GradIme"])
             list_of_locations.append(meteo_data_location["GradIme"])
         return list_of_locations
 
